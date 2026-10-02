@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Morning Dew Montessori School - School Management System</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        brand: { 50:'#fff7ed',100:'#ffedd5',500:'#f97316',600:'#ea580c',primary:'#E65100',hover:'#BF360C',dark:'#9A2B00',light:'#FFF3E0' },
+        slate: { sidebar:'#0F172A', sidebarHover:'#1E293B', sidebarActive:'#334155' }
+      },
+      fontFamily: { sans: ['"Plus Jakarta Sans"','sans-serif'] }
+    }
+  }
+}
+</script>
+<style>
+body{font-family:'Plus Jakarta Sans',sans-serif;background-color:#F8FAFC}
+.custom-scrollbar::-webkit-scrollbar{width:5px;height:5px}
+.custom-scrollbar::-webkit-scrollbar-track{background:#f1f5f9}
+.custom-scrollbar::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover{background:#94a3b8}
+#main-sidebar .custom-scrollbar::-webkit-scrollbar-track{background:transparent}
+#main-sidebar .custom-scrollbar::-webkit-scrollbar-thumb{background:#334155}
+/* Slim sidebar active link - reduced border for narrow width */
+.active-nav-link{background:linear-gradient(90deg,rgba(230,81,0,.22) 0%,rgba(230,81,0,.06) 100%)!important;border-left:3px solid #E65100!important;color:#fff!important;font-weight:700!important}
+.nav-btn{border-left:3px solid transparent}
+.nav-btn i{flex-shrink:0}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+.toast-anim{animation:slideIn .3s ease-out}
+.modal-anim{animation:fadeUp .25s ease-out}
+input,select,textarea{outline:none}
+@media print{.no-print{display:none!important}.print-only{display:block!important}}
+.att-radio:checked + span.present-pill{background:#059669!important;color:#fff!important;border-color:#059669!important}
+.att-radio:checked + span.absent-pill{background:#e11d48!important;color:#fff!important;border-color:#e11d48!important}
+.att-radio:checked + span.late-pill{background:#d97706!important;color:#fff!important;border-color:#d97706!important}
+</style>
+</head>
+<body class="text-slate-800 antialiased overflow-x-hidden flex h-screen bg-slate-100">
+
+<div id="toast-container" class="fixed top-5 right-5 z-[100] flex flex-col gap-2 pointer-events-none items-end"></div>
+<div id="sidebar-backdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-30 hidden lg:hidden transition-opacity duration-300 opacity-0"></div>
+
+<!-- REDUCED WIDTH SIDEBAR: 240px (w-60) instead of 288px (w-72) -->
+<aside id="main-sidebar" class="fixed lg:static inset-y-0 left-0 z-40 w-60 bg-[#0F172A] text-slate-300 flex flex-col transition-all duration-300 -translate-x-full lg:translate-x-0 shadow-2xl flex-shrink-0 border-r border-slate-800" style="width:240px;min-width:240px;max-width:240px;">
+
+<div class="px-4 py-4 border-b border-slate-800/80 flex items-center justify-between gap-2">
+<div class="flex items-center gap-2.5 min-w-0">
+<div class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#E65100] to-amber-500 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-orange-950/40 border border-orange-400/30 shrink-0"><i class="fa-solid fa-sun text-yellow-200 text-base"></i></div>
+<div class="overflow-hidden min-w-0">
+<h1 class="font-extrabold text-white text-[15px] leading-tight tracking-tight truncate">Morning Dew</h1>
+<p class="text-[10px] font-bold text-orange-500 uppercase tracking-wider truncate">Montessori • Effiduasi</p>
+</div>
+</div>
+<button onclick="toggleSidebar()" class="lg:hidden text-slate-400 hover:text-white p-1 shrink-0"><i class="fa-solid fa-xmark text-lg"></i></button>
+</div>
+
+<div class="px-3 pt-3 pb-1">
+<div class="bg-slate-800/60 border border-slate-700/60 rounded-lg p-2 flex items-center justify-between gap-2">
+<div class="min-w-0">
+<span class="text-[9px] uppercase font-bold text-slate-400 block leading-none mb-1">Academic Term</span>
+<span class="text-[11px] font-semibold text-white flex items-center gap-1.5 truncate"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span> Term 2, 2024/25</span>
+</div>
+<span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#E65100]/20 text-orange-500 font-bold border border-[#E65100]/30 shrink-0">GES</span>
+</div>
+</div>
+
+<nav class="flex-1 overflow-y-auto custom-scrollbar px-2.5 py-3 space-y-5 text-[13px]">
+<div>
+<p class="px-2 text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1.5">Main Menu</p>
+<div class="space-y-0.5">
+<button onclick="switchView('dashboard')" id="nav-dashboard" class="nav-btn w-full text-left px-2.5 py-2 rounded-lg flex items-center gap-2.5 transition-colors text-slate-300 hover:bg-[#1E293B] hover:text-white active-nav-link"><i class="fa-solid fa-chart-pie w-4 text-center text-[#E65100] text-[13px]"></i><span class="truncate">Executive Dashboard</span></button>
+<button onclick="switchView('students')" id="nav-students" class="nav-btn w-full text-left px-2.5 py-2 rounded-lg flex items-center gap-2.5 transition-colors text-slate-300 hover:bg-[#1E293B] hover:text-white"><i class="fa-solid fa-user-graduate w-4 text-center text-slate-400 text-[13px]"></i><span class="truncate">Students</span><span class="ml-auto text-[9px] px-1.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700 shrink-0">428</span></button>
+<button onclick="switchView('staff')" id="nav-staff" class="nav-btn w-full text-left px-2.5 py-2 rounded-lg flex items-center gap-2.5 transition-colors text-slate-300 hover:bg-[#1E293B] hover:text-white"><i class="fa-solid fa-chalkboard-user w-4 text-center text-slate-400 text-[13px]"></i><span class="truncate">Staff & Teachers</span><span class="ml-auto text-[9px] px-1.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700 shrink-0">32</span></button>
+<button onclick="switchView('classes')" id="nav-classes" class="nav-btn w-full text-left px-2.5 py-2 rounded-lg flex items-center gap-2.5 transition-colors text-slate-300 hover:bg-[#1E293B] hover:text-white"><i class="fa-solid fa-school w-4 text-center text-slate-400 text-[13px]"></i><span class="truncate">Classes & Subjects</span></button>
+<button onclick="switchView('attendance')" id="nav-attendance" class="nav-btn w-full text-left px-2.5 py-2 rounded-lg flex items-center gap-2.5 transition-colors text-slate-300 hover:bg-[#1E293B] hover:text-white"><i class="fa-solid fa-clipboard-user w-4 text-center text-slate-400 text-[13px]"></i><span class="truncate">Daily Attendance</span><span class="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span></button>
+</div>
+</div>
+<div>
+<p class="px-2 text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1.5">Bursary & Accounts</p>
+<div class="space-y-0.5">
+<button onclick="switchView('fees')" id="nav-fees" class="nav-btn w-full text-left px-2.5 py-2 rounded-lg flex items-center gap-2.5 transition-colors text-slate-300 hover:bg-[#1E293B] hover:text-white"><i class="fa-solid fa-receipt w-4 text-center text-slate-400 text-[13px]"></i><span class="truncate">Fees & Payments</span></button>
+<button onclick="switchView('expenses')" id="nav-expenses" class="nav-btn w-full text-left px-2.5 py-2 rounded-lg flex items-center gap-2.5 transition-colors text-slate-300 hover:bg-[#1E293B] hover:text-white"><i class="fa-solid fa-wallet w-4 text-center text-slate-400 text-[13px]"></i><span class="truncate">School Expenses</span></button>
+</div>
+</div>
+<div>
+<p class="px-2 text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1.5">Academics & Comms</p>
+<div class="space-y-0.5">
+<button onclick="switchView('exams')" id="nav-exams" class="nav-btn w-full text-left px-2.5 py-2 rounded-lg flex items-center gap-2.5 transition-colors text-slate-300 hover:bg-[#1E293B] hover:text-white"><i class="fa-solid fa-file-signature w-4 text-center text-slate-400 text-[13px]"></i><span class="truncate">Exams & Reports</span></button>
+<button onclick="switchView('notices')" id="nav-notices" class="nav-btn w-full text-left px-2.5 py-2 rounded-lg flex items-center gap-2.5 transition-colors text-slate-300 hover:bg-[#1E293B] hover:text-white"><i class="fa-solid fa-bullhorn w-4 text-center text-slate-400 text-[13px]"></i><span class="truncate">Notices & SMS</span></button>
+<button onclick="switchView('reports')" id="nav-reports" class="nav-btn w-full text-left px-2.5 py-2 rounded-lg flex items-center gap-2.5 transition-colors text-slate-300 hover:bg-[#1E293B] hover:text-white"><i class="fa-solid fa-file-pdf w-4 text-center text-slate-400 text-[13px]"></i><span class="truncate">Reports & Analytics</span></button>
+</div>
+</div>
+<div>
+<p class="px-2 text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1.5">System</p>
+<div class="space-y-0.5">
+<button onclick="switchView('settings')" id="nav-settings" class="nav-btn w-full text-left px-2.5 py-2 rounded-lg flex items-center gap-2.5 transition-colors text-slate-300 hover:bg-[#1E293B] hover:text-white"><i class="fa-solid fa-sliders w-4 text-center text-slate-400 text-[13px]"></i><span class="truncate">Roles & Cloud</span></button>
+</div>
+</div>
+</nav>
+
+<div class="p-3 bg-slate-950/60 border-t border-slate-800/80 text-xs">
+<div class="flex items-center justify-between mb-2 gap-2">
+<div class="flex items-center gap-1.5 min-w-0">
+<span class="relative flex h-1.5 w-1.5 shrink-0"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span></span>
+<span class="text-[10px] text-slate-400 font-mono truncate">Supabase: Online</span>
+</div>
+<span class="text-[9px] bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded font-mono shrink-0">Next.js 14</span>
+</div>
+<div class="flex items-center gap-2 bg-slate-900 p-1.5 rounded-lg border border-slate-800">
+<img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="Admin" class="w-7 h-7 rounded-full object-cover border border-orange-500/50 shrink-0">
+<div class="flex-1 min-w-0">
+<p class="text-[11px] font-semibold text-white truncate">Nana Yaw Boateng</p>
+<p class="text-[9px] text-orange-500 font-medium truncate">Head Administrator</p>
+</div>
+<button onclick="showToast('Logged out securely','info')" class="text-slate-400 hover:text-red-400 p-1 shrink-0" title="Log Out"><i class="fa-solid fa-arrow-right-from-bracket text-xs"></i></button>
+</div>
+</div>
+</aside>
+
+<div class="flex-1 flex flex-col min-w-0 h-screen overflow-hidden bg-slate-50">
+<header class="h-16 bg-white border-b border-slate-200 px-4 lg:px-6 flex items-center justify-between gap-3 z-20 flex-shrink-0 shadow-sm no-print">
+<div class="flex items-center gap-3 min-w-0">
+<button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100"><i class="fa-solid fa-bars text-lg"></i></button>
+<div class="hidden sm:flex items-center gap-2 text-sm text-slate-500 min-w-0">
+<span class="font-medium text-slate-700 flex items-center gap-1.5 whitespace-nowrap"><i class="fa-solid fa-location-dot text-[#E65100] text-xs"></i> Effiduasi, Ashanti</span>
+<span class="text-slate-300">/</span>
+<span id="header-breadcrumb" class="font-bold text-slate-900 truncate">Executive Dashboard</span>
+</div>
+<div class="sm:hidden font-bold text-slate-900 text-sm truncate" id="header-breadcrumb-mobile">Dashboard</div>
+</div>
+<div class="flex items-center gap-2.5">
+<div class="relative hidden md:block w-56 lg:w-72">
+<i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+<input type="text" id="global-search" oninput="handleGlobalSearch(this.value)" placeholder="Search student index, staff, receipt..." class="w-full bg-slate-100 border border-slate-200 rounded-lg pl-9 pr-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#E65100]/30 focus:border-[#E65100] transition">
+<div id="global-search-results" class="hidden absolute top-full mt-2 left-0 right-0 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden z-50"></div>
+</div>
+<button onclick="openModal('modal-add-student')" class="bg-[#E65100] hover:bg-[#BF360C] text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-sm transition flex items-center gap-1.5 whitespace-nowrap"><i class="fa-solid fa-plus"></i><span class="hidden sm:inline">New Admission</span></button>
+<button onclick="openModal('modal-record-fee')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-sm transition flex items-center gap-1.5 whitespace-nowrap"><i class="fa-solid fa-money-bill-wave"></i><span class="hidden sm:inline">Collect Fee</span></button>
+<div class="relative">
+<button onclick="toggleNotificationDropdown()" class="p-2 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100 relative"><i class="fa-regular fa-bell text-base"></i><span class="absolute top-1.5 right-1.5 w-2 h-2 bg-[#E65100] rounded-full ring-2 ring-white"></span></button>
+<div id="notification-dropdown" class="hidden absolute right-0 mt-2 w-80 max-w-[85vw] bg-white rounded-xl shadow-2xl border border-slate-200 p-3 z-50">
+<div class="flex items-center justify-between pb-2 border-b border-slate-100"><h4 class="font-bold text-xs text-slate-900">Notifications (3 new)</h4><span class="text-[10px] text-[#E65100] cursor-pointer hover:underline font-bold" onclick="showToast('All marked as read','info')">Mark read</span></div>
+<div class="divide-y divide-slate-100 max-h-64 overflow-y-auto text-xs py-1 custom-scrollbar">
+<div class="py-2 hover:bg-slate-50 px-2 rounded transition cursor-pointer"><p class="font-semibold text-slate-800">GH₵ 1,200 MoMo Received</p><p class="text-[11px] text-slate-500">Student: Ama Serwaa (KG 2) • Fee confirmed</p><span class="text-[9px] text-slate-400">10 mins ago</span></div>
+<div class="py-2 hover:bg-slate-50 px-2 rounded transition cursor-pointer"><p class="font-semibold text-slate-800">PTA Meeting Notice Sent</p><p class="text-[11px] text-slate-500">SMS to 394 guardians via Arkesel SMS</p><span class="text-[9px] text-slate-400">1 hr ago</span></div>
+<div class="py-2 hover:bg-slate-50 px-2 rounded transition cursor-pointer"><p class="font-semibold text-slate-800">Term 2 Exam Scores Pending</p><p class="text-[11px] text-slate-500">JHS 2 Integrated Science awaiting review</p><span class="text-[9px] text-slate-400">3 hrs ago</span></div>
+</div>
+</div>
+</div>
+<div class="hidden sm:flex items-center gap-1.5 pl-2 border-l border-slate-200 shrink-0"><span class="text-sm">🇬🇭</span><span class="text-[11px] font-bold text-slate-600 font-mono">GHS</span></div>
+</div>
+</header>
+
+<main class="flex-1 overflow-y-auto custom-scrollbar p-4 lg:p-7 bg-slate-50/60">
+
+<!-- DASHBOARD -->
+<section id="view-dashboard" class="space-y-6">
+<div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 p-6 text-white shadow-xl border border-slate-800">
+<div class="absolute right-0 top-0 bottom-0 w-1/3 bg-cover bg-center opacity-10 mix-blend-overlay" style="background-image:url('https://images.unsplash.com/photo-1577896851231-70ef18881754?w=800&auto=format&fit=crop&q=80')"></div>
+<div class="absolute -left-10 -bottom-16 w-64 h-64 bg-[#E65100]/20 rounded-full blur-3xl"></div>
+<div class="relative z-10 max-w-2xl">
+<div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#E65100]/20 border border-[#E65100]/40 text-orange-400 text-xs font-semibold mb-3"><i class="fa-solid fa-graduation-cap"></i> Montessori & GES Hybrid Curriculum</div>
+<h2 class="text-2xl lg:text-3xl font-black tracking-tight text-white">Morning Dew Montessori Portal</h2>
+<p class="mt-1 text-slate-300 text-sm leading-relaxed">Effiduasi, Ashanti Region. Real-time monitoring, attendance sync, fee ledger, and terminal reports powered by Supabase.</p>
+<div class="mt-4 flex flex-wrap gap-2">
+<button onclick="switchView('attendance')" class="text-xs font-bold bg-[#E65100] hover:bg-[#BF360C] px-4 py-2 rounded-lg transition"><i class="fa-solid fa-clipboard-check mr-1"></i> Take Attendance</button>
+<button onclick="openModal('modal-record-fee')" class="text-xs font-bold bg-white/10 hover:bg-white/20 border border-white/20 px-4 py-2 rounded-lg transition"><i class="fa-solid fa-receipt mr-1"></i> Collect Fees</button>
+<button onclick="switchView('exams')" class="text-xs font-bold bg-white/10 hover:bg-white/20 border border-white/20 px-4 py-2 rounded-lg transition"><i class="fa-solid fa-file-lines mr-1"></i> Report Cards</button>
+</div>
+</div>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+<div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition">
+<div class="flex items-center justify-between"><span class="text-xs font-bold uppercase tracking-wider text-slate-500">Total Enrolment</span><span class="w-10 h-10 rounded-xl bg-orange-100 text-[#E65100] flex items-center justify-center text-lg"><i class="fa-solid fa-user-graduate"></i></span></div>
+<div class="mt-4 flex items-baseline gap-2"><span class="text-3xl font-extrabold text-slate-900" id="kpi-students">428</span><span class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded flex items-center gap-0.5"><i class="fa-solid fa-arrow-trend-up"></i> +14</span></div>
+<div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-medium"><span>Boys: <strong>210</strong></span><span>Girls: <strong>218</strong></span></div>
+</div>
+<div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition">
+<div class="flex items-center justify-between"><span class="text-xs font-bold uppercase tracking-wider text-slate-500">Staff Strength</span><span class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center text-lg"><i class="fa-solid fa-chalkboard-user"></i></span></div>
+<div class="mt-4 flex items-baseline gap-2"><span class="text-3xl font-extrabold text-slate-900">32</span><span class="text-xs font-medium text-slate-500">Active personnel</span></div>
+<div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-medium"><span>24 Teaching</span><span>8 Non-Teaching</span></div>
+</div>
+<div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition">
+<div class="flex items-center justify-between"><span class="text-xs font-bold uppercase tracking-wider text-slate-500">Today's Attendance</span><span class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-lg"><i class="fa-solid fa-clipboard-check"></i></span></div>
+<div class="mt-4 flex items-baseline gap-2"><span class="text-3xl font-extrabold text-slate-900" id="kpi-attendance">96.2%</span><span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">High</span></div>
+<div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-medium"><span>Present: <strong>412</strong></span><span>Absent: <strong class="text-rose-500">16</strong></span></div>
+</div>
+<div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition">
+<div class="flex items-center justify-between"><span class="text-xs font-bold uppercase tracking-wider text-slate-500">Term 2 Fees Collected</span><span class="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center text-lg"><i class="fa-solid fa-cedi-sign"></i></span></div>
+<div class="mt-4 flex items-baseline gap-2"><span class="text-2xl font-black text-slate-900">GH₵ 184,500</span></div>
+<div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-medium"><span class="text-emerald-600 font-bold">81.4% Target</span><span class="text-amber-600">GH₵ 42k Bal.</span></div>
+<div class="mt-2 w-full h-1.5 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-[#E65100] to-amber-500 rounded-full" style="width:81.4%"></div></div>
+</div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
+<div><h3 class="font-bold text-slate-900 text-base">Financial & Attendance Overview</h3><p class="text-xs text-slate-500">Revenue (GH₵ '000) vs Monthly Avg. Attendance (%)</p></div>
+<div class="flex items-center gap-2 flex-wrap"><span class="inline-flex items-center gap-1.5 text-xs text-slate-600 bg-slate-100 px-3 py-1 rounded-md font-medium"><span class="w-2.5 h-2.5 rounded-full bg-[#E65100]"></span> Revenue</span><span class="inline-flex items-center gap-1.5 text-xs text-slate-600 bg-slate-100 px-3 py-1 rounded-md font-medium"><span class="w-2.5 h-2.5 rounded-full bg-slate-800"></span> Attendance</span></div>
+</div>
+<div class="h-64 w-full"><canvas id="overviewChart"></canvas></div>
+</div>
+<div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-1"><h3 class="font-bold text-slate-900 text-base">Class Enrolment Ratio</h3><span class="text-xs font-semibold text-[#E65100] cursor-pointer hover:underline" onclick="switchView('classes')">View All</span></div>
+<p class="text-xs text-slate-500 mb-4">Distribution across tiers</p>
+<div class="space-y-3.5">
+<div><div class="flex justify-between text-xs font-semibold mb-1"><span>Creche & Nursery</span><span class="font-bold">78 Pupils</span></div><div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-amber-500 rounded-full" style="width:18%"></div></div></div>
+<div><div class="flex justify-between text-xs font-semibold mb-1"><span>Kindergarten</span><span class="font-bold">112 Pupils</span></div><div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-[#E65100] rounded-full" style="width:26%"></div></div></div>
+<div><div class="flex justify-between text-xs font-semibold mb-1"><span>Primary (B1-B6)</span><span class="font-bold">164 Pupils</span></div><div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-blue-600 rounded-full" style="width:38%"></div></div></div>
+<div><div class="flex justify-between text-xs font-semibold mb-1"><span>JHS (1-3)</span><span class="font-bold">74 Students</span></div><div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-emerald-600 rounded-full" style="width:18%"></div></div></div>
+</div>
+</div>
+<div class="mt-5 p-3 rounded-xl bg-orange-50 border border-orange-200/60 flex items-center gap-3"><i class="fa-solid fa-circle-info text-[#E65100] text-xl"></i><div class="text-xs"><span class="font-bold text-slate-900">Term 2 PTA Meeting</span><p class="text-slate-600">Thursday, 14th next month at Assembly Hall.</p></div></div>
+</div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+<div class="p-5 border-b border-slate-100 flex items-center justify-between"><div><h3 class="font-bold text-slate-900 text-sm">Recent Fee Receipts</h3><p class="text-xs text-slate-500">Live feed of MoMo and cash receipts</p></div><button onclick="switchView('fees')" class="text-xs text-[#E65100] font-bold hover:underline">View Ledger</button></div>
+<div class="overflow-x-auto"><table class="w-full text-left text-xs text-slate-600">
+<thead class="bg-slate-50 text-slate-500 uppercase font-semibold text-[10px] border-b border-slate-100"><tr><th class="px-5 py-3">Receipt</th><th class="px-5 py-3">Student</th><th class="px-5 py-3">Class</th><th class="px-5 py-3">Method</th><th class="px-5 py-3">Amount</th><th class="px-5 py-3">Status</th></tr></thead>
+<tbody class="divide-y divide-slate-100 font-medium" id="dashboard-recent-fees"></tbody>
+</table></div>
+</div>
+<div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+<div><h3 class="font-bold text-slate-900 text-sm mb-1">On-Duty Supervisors</h3><p class="text-xs text-slate-500 mb-4">Effiduasi Campus • Week 6</p>
+<div class="space-y-3">
+<div class="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-100"><div class="w-9 h-9 rounded-full bg-[#E65100] text-white flex items-center justify-center font-bold text-xs shrink-0">MA</div><div class="flex-1 min-w-0"><p class="text-xs font-bold text-slate-900 truncate">Mr. Michael Appiah</p><p class="text-[11px] text-slate-500">Morning Assembly & Gate</p></div><span class="text-[10px] bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded shrink-0">Present</span></div>
+<div class="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-100"><div class="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shrink-0">GO</div><div class="flex-1 min-w-0"><p class="text-xs font-bold text-slate-900 truncate">Mrs. Grace Osei Tutu</p><p class="text-[11px] text-slate-500">Canteen & Montessori Wing</p></div><span class="text-[10px] bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded shrink-0">Present</span></div>
+<div class="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-100"><div class="w-9 h-9 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold text-xs shrink-0">KA</div><div class="flex-1 min-w-0"><p class="text-xs font-bold text-slate-900 truncate">Ms. Akosua Frimpomaa</p><p class="text-[11px] text-slate-500">Bus Route & Closing</p></div><span class="text-[10px] bg-amber-100 text-amber-700 font-bold px-2 py-0.5 rounded shrink-0">Standby</span></div>
+</div></div>
+<div class="pt-4 mt-4 border-t border-slate-100 space-y-2">
+<button onclick="showToast('Attendance report exported to Bursar email','success')" class="w-full py-2.5 px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition"><i class="fa-solid fa-file-export"></i> Export Daily Roll (PDF)</button>
+<button onclick="switchView('notices')" class="w-full py-2.5 px-3 bg-orange-50 hover:bg-orange-100 text-[#E65100] border border-orange-200 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition"><i class="fa-solid fa-bullhorn"></i> Broadcast Notice</button>
+</div>
+</div>
+</div>
+</section>
+
+<!-- STUDENTS -->
+<section id="view-students" class="hidden space-y-6">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+<div><h2 class="text-lg font-bold text-slate-900">Student Directory & Enrolment</h2><p class="text-xs text-slate-500">Pupil profiles, Ghana Card / birth cert records, guardians & parent records</p></div>
+<div class="flex flex-wrap items-center gap-2">
+<select id="student-filter-class" onchange="filterStudents()" class="text-xs border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-700 font-medium">
+<option value="ALL">All Classes</option><option value="Creche">Creche</option><option value="Nursery">Nursery</option><option value="KG">KG</option><option value="Basic 1">Basic 1</option><option value="Basic 2">Basic 2</option><option value="Basic 3">Basic 3</option><option value="Basic 4">Basic 4</option><option value="Basic 5">Basic 5</option><option value="Basic 6">Basic 6</option><option value="JHS">JHS</option>
+</select>
+<select id="student-filter-fee" onchange="filterStudents()" class="text-xs border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-700 font-medium"><option value="ALL">All Fee Status</option><option value="Paid">Paid</option><option value="Partial">Partial</option><option value="Owes">Owes</option></select>
+<button onclick="openModal('modal-add-student')" class="bg-[#E65100] hover:bg-[#BF360C] text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm flex items-center gap-1.5 transition"><i class="fa-solid fa-user-plus"></i> Add Student</button>
+</div>
+</div>
+<div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+<div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+<div class="relative w-full max-w-sm"><i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i><input type="text" id="student-search-input" onkeyup="filterStudents()" placeholder="Search name, code, guardian phone..." class="w-full text-xs pl-9 pr-3 py-2 rounded-lg border border-slate-200"></div>
+<span id="student-count-badge" class="text-xs font-bold text-slate-600 bg-slate-100 px-3 py-2 rounded-lg whitespace-nowrap text-center">Showing 8 pupils</span>
+</div>
+<div class="overflow-x-auto"><table class="w-full text-left text-xs text-slate-600 min-w-[900px]">
+<thead class="bg-slate-50 text-slate-500 uppercase font-semibold text-[10px] border-b border-slate-200"><tr><th class="px-5 py-3.5">ID / Code</th><th class="px-5 py-3.5">Student Name</th><th class="px-5 py-3.5">Class</th><th class="px-5 py-3.5">Gender & Age</th><th class="px-5 py-3.5">Guardian / Parent</th><th class="px-5 py-3.5">Fee Status</th><th class="px-5 py-3.5 text-right">Actions</th></tr></thead>
+<tbody id="student-table-body" class="divide-y divide-slate-100 font-medium"></tbody>
+</table></div>
+</div>
+</section>
+
+<!-- STAFF -->
+<section id="view-staff" class="hidden space-y-6">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+<div><h2 class="text-lg font-bold text-slate-900">Faculty & Staff Directory</h2><p class="text-xs text-slate-500">Teachers, Montessori Facilitators, Administrative & Support Staff</p></div>
+<div class="flex gap-2">
+<input type="text" id="staff-search" onkeyup="renderStaff()" placeholder="Search staff..." class="text-xs border border-slate-200 rounded-lg px-3 py-2 w-48">
+<button onclick="openModal('modal-add-staff')" class="bg-[#E65100] hover:bg-[#BF360C] text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm flex items-center gap-1.5 transition whitespace-nowrap"><i class="fa-solid fa-plus"></i> Add Staff</button>
+</div>
+</div>
+<div id="staff-grid-container" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5"></div>
+</section>
+
+<!-- CLASSES -->
+<section id="view-classes" class="hidden space-y-6">
+<div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+<div><h2 class="text-lg font-bold text-slate-900">Curriculum & Class Allocations</h2><p class="text-xs text-slate-500">Effiduasi Campus Streams • Montessori Sensorial & GES Basic Curriculum</p></div>
+<button onclick="showToast('Class structure synced with GES guidelines','info')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-2 rounded-lg whitespace-nowrap"><i class="fa-solid fa-book-open mr-1"></i> View GES Syllabus</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5" id="classes-container"></div>
+</section>
+
+<!-- ATTENDANCE -->
+<section id="view-attendance" class="hidden space-y-6">
+<div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+<div><h2 class="text-lg font-bold text-slate-900">Daily Attendance Register</h2><p class="text-xs text-slate-500">Mark or sync daily attendance with instant SMS parent alerts</p></div>
+<div class="flex flex-wrap items-center gap-2">
+<input type="date" id="attendance-date" class="text-xs border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-700">
+<select id="attendance-class-select" onchange="loadClassAttendance()" class="text-xs border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-700 font-bold">
+<option value="Basic 4 A">Basic 4 A (34 Pupils)</option><option value="KG 2">KG 2 (28 Pupils)</option><option value="Nursery 1">Nursery 1 (22 Pupils)</option><option value="JHS 1">JHS 1 (26 Pupils)</option>
+</select>
+<button onclick="saveAttendance()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-sm flex items-center gap-1.5 transition"><i class="fa-solid fa-floppy-disk"></i> Submit & SMS Absent</button>
+</div>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+<div class="bg-white p-4 rounded-xl border border-slate-200 text-center"><p class="text-[11px] font-bold text-slate-500 uppercase">Present</p><p class="text-2xl font-black text-emerald-600" id="att-present-count">0</p></div>
+<div class="bg-white p-4 rounded-xl border border-slate-200 text-center"><p class="text-[11px] font-bold text-slate-500 uppercase">Absent</p><p class="text-2xl font-black text-rose-600" id="att-absent-count">0</p></div>
+<div class="bg-white p-4 rounded-xl border border-slate-200 text-center"><p class="text-[11px] font-bold text-slate-500 uppercase">Late</p><p class="text-2xl font-black text-amber-600" id="att-late-count">0</p></div>
+<div class="bg-white p-4 rounded-xl border border-slate-200 text-center"><p class="text-[11px] font-bold text-slate-500 uppercase">Rate</p><p class="text-2xl font-black text-slate-900" id="att-rate">0%</p></div>
+</div>
+<div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+<div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+<span class="font-bold text-slate-700" id="current-attendance-heading">Marking: Basic 4 A</span>
+<div class="flex gap-2 flex-wrap"><button onclick="markAllAttendance('present')" class="px-2.5 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-lg font-bold text-[11px]">Mark All Present</button><button onclick="markAllAttendance('absent')" class="px-2.5 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-lg font-bold text-[11px]">Mark All Absent</button><button onclick="markAllAttendance('late')" class="px-2.5 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg font-bold text-[11px]">Mark All Late</button></div>
+</div>
+<div class="overflow-x-auto"><table class="w-full text-left text-xs text-slate-600 min-w-[800px]">
+<thead class="bg-white text-slate-500 uppercase font-semibold text-[10px] border-b border-slate-100"><tr><th class="px-5 py-3">#</th><th class="px-5 py-3">Pupil Code</th><th class="px-5 py-3">Pupil Name</th><th class="px-5 py-3">Guardian Contact</th><th class="px-5 py-3 text-center">Status</th><th class="px-5 py-3">Remarks</th></tr></thead>
+<tbody id="attendance-table-body" class="divide-y divide-slate-100 font-medium"></tbody>
+</table></div>
+</div>
+</section>
+
+<!-- FEES -->
+<section id="view-fees" class="hidden space-y-6">
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+<div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm"><span class="text-xs font-bold uppercase text-slate-500">Term 2 Total Billable</span><p class="text-2xl font-extrabold text-slate-900 mt-1">GH₵ 226,500.00</p><span class="text-[11px] text-slate-400">Tuition + Feeding + Books</span></div>
+<div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm"><span class="text-xs font-bold uppercase text-emerald-600">Total Collected</span><p class="text-2xl font-extrabold text-emerald-600 mt-1" id="fees-collected-total">GH₵ 184,500.00</p><span class="text-[11px] text-emerald-700 font-bold">81.4% Reconciliation</span></div>
+<div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm"><span class="text-xs font-bold uppercase text-rose-500">Arrears / Defaulters</span><p class="text-2xl font-extrabold text-rose-600 mt-1">GH₵ 42,000.00</p><button onclick="showToast('SMS reminders sent to 48 debtors','info')" class="mt-1 text-[11px] text-[#E65100] font-bold hover:underline flex items-center gap-1"><i class="fa-solid fa-paper-plane"></i> Send Mass Fee SMS</button></div>
+</div>
+<div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+<div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+<div><h3 class="font-bold text-slate-900 text-sm">Fee Payment Transactions & Receipts</h3><p class="text-xs text-slate-500">MTN MoMo, Telecel Cash & Bank Deposits</p></div>
+<div class="flex items-center gap-2">
+<input type="text" id="fee-search" onkeyup="renderFees()" placeholder="Search receipt / student..." class="text-xs border border-slate-200 rounded-lg px-3 py-2 w-52">
+<button onclick="openModal('modal-record-fee')" class="bg-[#E65100] hover:bg-[#BF360C] text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow-sm flex items-center gap-1.5 transition whitespace-nowrap"><i class="fa-solid fa-plus"></i> Collect Fee</button>
+</div>
+</div>
+<div class="overflow-x-auto"><table class="w-full text-left text-xs text-slate-600 min-w-[900px]">
+<thead class="bg-slate-50 text-slate-500 uppercase font-semibold text-[10px] border-b border-slate-100"><tr><th class="px-5 py-3.5">Date & Time</th><th class="px-5 py-3.5">Receipt #</th><th class="px-5 py-3.5">Student</th><th class="px-5 py-3.5">Channel</th><th class="px-5 py-3.5">Category</th><th class="px-5 py-3.5">Amount</th><th class="px-5 py-3.5">Action</th></tr></thead>
+<tbody id="fees-ledger-body" class="divide-y divide-slate-100 font-medium"></tbody>
+</table></div>
+</div>
+</section>
+
+<!-- EXPENSES -->
+<section id="view-expenses" class="hidden space-y-6">
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+<div><h2 class="text-lg font-bold text-slate-900">School Operational Expenses</h2><p class="text-xs text-slate-500">Utilities, Bus fuel, Sensorial materials & feeding supplies</p></div>
+<button onclick="openModal('modal-add-expense')" class="bg-[#E65100] hover:bg-[#BF360C] text-white text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-1.5 transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-file-invoice-dollar"></i> Record Expense</button>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+<div class="bg-white p-4 rounded-xl border border-slate-200"><p class="text-xs text-slate-500 font-bold uppercase">Bus Fleet & Fuel</p><p class="text-xl font-black text-slate-900 mt-1">GH₵ 6,400.00</p><span class="text-[10px] text-slate-400">Effiduasi-Asokore-Juaben</span></div>
+<div class="bg-white p-4 rounded-xl border border-slate-200"><p class="text-xs text-slate-500 font-bold uppercase">Learning Aids</p><p class="text-xl font-black text-slate-900 mt-1">GH₵ 3,850.00</p><span class="text-[10px] text-slate-400">Wooden Sensorial Materials</span></div>
+<div class="bg-white p-4 rounded-xl border border-slate-200"><p class="text-xs text-slate-500 font-bold uppercase">Canteen Provisions</p><p class="text-xl font-black text-slate-900 mt-1">GH₵ 12,200.00</p><span class="text-[10px] text-slate-400">Local Food Suppliers</span></div>
+<div class="bg-white p-4 rounded-xl border border-slate-200"><p class="text-xs text-slate-500 font-bold uppercase">Utilities & ECG</p><p class="text-xl font-black text-slate-900 mt-1">GH₵ 2,900.00</p><span class="text-[10px] text-slate-400">ECG Prepaid + Ghana Water</span></div>
+</div>
+<div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+<div class="overflow-x-auto"><table class="w-full text-left text-xs text-slate-600 min-w-[800px]">
+<thead class="bg-slate-50 text-slate-500 uppercase font-semibold text-[10px] border-b border-slate-200"><tr><th class="px-5 py-3">Date</th><th class="px-5 py-3">Voucher</th><th class="px-5 py-3">Category</th><th class="px-5 py-3">Description / Beneficiary</th><th class="px-5 py-3">Approved By</th><th class="px-5 py-3 text-right">Amount (GH₵)</th></tr></thead>
+<tbody id="expenses-table-body" class="divide-y divide-slate-100 font-medium"></tbody>
+</table></div>
+</div>
+</section>
+
+<!-- EXAMS -->
+<section id="view-exams" class="hidden space-y-6">
+<div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+<div><h2 class="text-lg font-bold text-slate-900">Assessment, Terminal Exams & Report Cards</h2><p class="text-xs text-slate-500">GES SBA (50%) + Terminal Exam (50%) with Montessori metrics</p></div>
+<div class="flex flex-wrap items-center gap-2">
+<select id="report-class-filter" onchange="showToast('Performance sheet switched to '+this.value,'info')" class="text-xs border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-700 font-bold"><option value="Basic 4 A">Basic 4 A</option><option value="KG 2">KG 2</option><option value="JHS 2">JHS 2</option></select>
+<button onclick="previewReportCard('MDM-2024-001')" class="bg-[#E65100] hover:bg-[#BF360C] text-white text-xs font-bold px-4 py-2 rounded-lg shadow-sm flex items-center gap-1.5 transition"><i class="fa-solid fa-file-lines"></i> Sample Report Preview</button>
+</div>
+</div>
+<div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+<div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+<span class="font-bold text-slate-800">Class Performance Sheet: Basic 4 A (Term 2)</span>
+<button onclick="showToast('Scores calculated and published to Parent Portal','success')" class="text-xs font-bold text-emerald-700 bg-emerald-100 px-3 py-1.5 rounded-lg hover:bg-emerald-200 w-fit"><i class="fa-solid fa-check-double mr-1"></i> Lock & Publish Grades</button>
+</div>
+<div class="overflow-x-auto"><table class="w-full text-left text-xs text-slate-600 min-w-[1000px]">
+<thead class="bg-white text-slate-500 uppercase font-semibold text-[10px] border-b border-slate-200"><tr><th class="px-5 py-3">Student Name</th><th class="px-4 py-3 text-center">English</th><th class="px-4 py-3 text-center">Maths</th><th class="px-4 py-3 text-center">Science</th><th class="px-4 py-3 text-center">Twi</th><th class="px-4 py-3 text-center">Computing</th><th class="px-4 py-3 text-center">Avg</th><th class="px-4 py-3">Remark</th><th class="px-4 py-3 text-right">Report</th></tr></thead>
+<tbody class="divide-y divide-slate-100 font-medium" id="exams-table-body"></tbody>
+</table></div>
+</div>
+</section>
+
+<!-- NOTICES -->
+<section id="view-notices" class="hidden space-y-6">
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+<div><h2 class="text-lg font-bold text-slate-900">School Notices & Parent Broadcasts</h2><p class="text-xs text-slate-500">Instant SMS announcements to Effiduasi guardian network</p></div>
+<button onclick="openModal('modal-broadcast-notice')" class="bg-[#E65100] hover:bg-[#BF360C] text-white text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-1.5 transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-bullhorn"></i> New Broadcast / SMS</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-5" id="notices-grid"></div>
+</section>
+
+<!-- REPORTS -->
+<section id="view-reports" class="hidden space-y-6">
+<div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+<h2 class="text-lg font-bold text-slate-900">Institutional Reports & Audit Extracts</h2>
+<p class="text-xs text-slate-500 mb-6">GES District reports, financial statements, census archives</p>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+<div class="p-4 border border-slate-200 rounded-xl hover:border-[#E65100] hover:shadow-md transition flex flex-col justify-between"><div><div class="w-10 h-10 rounded-lg bg-orange-100 text-[#E65100] flex items-center justify-center mb-3"><i class="fa-solid fa-file-excel text-lg"></i></div><h4 class="font-bold text-slate-900 text-sm">Full Term Fees Reconciliation</h4><p class="text-xs text-slate-500 mt-1">Tuition, feeding, uniform, books ledger with arrears.</p></div><button onclick="showToast('Reconciliation Excel downloaded','success')" class="mt-4 w-full py-2 bg-slate-100 hover:bg-[#E65100] hover:text-white text-slate-700 text-xs font-bold rounded-lg transition">Download .XLSX</button></div>
+<div class="p-4 border border-slate-200 rounded-xl hover:border-[#E65100] hover:shadow-md transition flex flex-col justify-between"><div><div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center mb-3"><i class="fa-solid fa-graduation-cap text-lg"></i></div><h4 class="font-bold text-slate-900 text-sm">GES Annual Census (EMIS)</h4><p class="text-xs text-slate-500 mt-1">Headcount by gender, age, disability, qualifications.</p></div><button onclick="showToast('GES Census format exported','success')" class="mt-4 w-full py-2 bg-slate-100 hover:bg-[#E65100] hover:text-white text-slate-700 text-xs font-bold rounded-lg transition">Export PDF Report</button></div>
+<div class="p-4 border border-slate-200 rounded-xl hover:border-[#E65100] hover:shadow-md transition flex flex-col justify-between"><div><div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center mb-3"><i class="fa-solid fa-chart-line text-lg"></i></div><h4 class="font-bold text-slate-900 text-sm">Developmental Milestones</h4><p class="text-xs text-slate-500 mt-1">Sensorial, Practical Life, Language progression.</p></div><button onclick="showToast('Montessori dossier compiled','success')" class="mt-4 w-full py-2 bg-slate-100 hover:bg-[#E65100] hover:text-white text-slate-700 text-xs font-bold rounded-lg transition">Export Pack</button></div>
+<div class="p-4 border border-slate-200 rounded-xl hover:border-[#E65100] hover:shadow-md transition flex flex-col justify-between"><div><div class="w-10 h-10 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center mb-3"><i class="fa-solid fa-clipboard-user text-lg"></i></div><h4 class="font-bold text-slate-900 text-sm">Attendance Audit Trail</h4><p class="text-xs text-slate-500 mt-1">Daily registers, absenteeism heatmap, SMS logs.</p></div><button onclick="showToast('Attendance audit downloaded','success')" class="mt-4 w-full py-2 bg-slate-100 hover:bg-[#E65100] hover:text-white text-slate-700 text-xs font-bold rounded-lg transition">Download CSV</button></div>
+<div class="p-4 border border-slate-200 rounded-xl hover:border-[#E65100] hover:shadow-md transition flex flex-col justify-between"><div><div class="w-10 h-10 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center mb-3"><i class="fa-solid fa-wallet text-lg"></i></div><h4 class="font-bold text-slate-900 text-sm">Expense & Petty Cash Book</h4><p class="text-xs text-slate-500 mt-1">Vouchers, approvals, budget vs actuals.</p></div><button onclick="showToast('Expense book exported','success')" class="mt-4 w-full py-2 bg-slate-100 hover:bg-[#E65100] hover:text-white text-slate-700 text-xs font-bold rounded-lg transition">Export PDF</button></div>
+<div class="p-4 border border-slate-200 rounded-xl hover:border-[#E65100] hover:shadow-md transition flex flex-col justify-between"><div><div class="w-10 h-10 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center mb-3"><i class="fa-solid fa-award text-lg"></i></div><h4 class="font-bold text-slate-900 text-sm">Terminal Broadsheet</h4><p class="text-xs text-slate-500 mt-1">Ranked class performance, averages, positions.</p></div><button onclick="showToast('Broadsheet generated','success')" class="mt-4 w-full py-2 bg-slate-100 hover:bg-[#E65100] hover:text-white text-slate-700 text-xs font-bold rounded-lg transition">Generate Sheet</button></div>
+</div>
+</div>
+</section>
+
+<!-- SETTINGS -->
+<section id="view-settings" class="hidden space-y-6">
+<div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-6 rounded-2xl border border-slate-700 shadow-xl">
+<div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+<div><div class="flex items-center gap-2 mb-2 flex-wrap"><span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-mono text-[10px] font-bold border border-emerald-500/40">SUPABASE-READY NEXT.JS ARCHITECTURE</span><span class="px-2 py-0.5 rounded bg-[#E65100] text-white font-mono text-[10px] font-bold">VERCEL PRODUCTION</span></div>
+<h3 class="text-lg font-bold text-white">Morning Dew Montessori Cloud Backend</h3><p class="text-xs text-slate-300 max-w-xl mt-1">Row Level Security (RLS), Parent Portal Auth, Realtime replication. TypeScript + Tailwind build pipeline.</p></div>
+<button onclick="testSupabaseConnection()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-lg whitespace-nowrap"><i class="fa-solid fa-bolt"></i> Test Supabase Ping</button>
+</div>
+<div id="supabase-log" class="mt-4 hidden bg-black/40 border border-white/10 rounded-xl p-3 font-mono text-[11px] text-emerald-300"></div>
+</div>
+<div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+<div class="mb-4"><h3 class="font-bold text-slate-900 text-base">User Roles & Access Control (RBAC)</h3><p class="text-xs text-slate-500">Fine-grained permissions for staff and parent portal</p></div>
+<div class="overflow-x-auto"><table class="w-full text-left text-xs text-slate-600 min-w-[700px]">
+<thead class="bg-slate-50 text-slate-700 uppercase font-bold text-[10px] border-b border-slate-200"><tr><th class="px-4 py-3">Permission Module</th><th class="px-4 py-3 text-center">Head Admin</th><th class="px-4 py-3 text-center">Bursar</th><th class="px-4 py-3 text-center">Teacher</th><th class="px-4 py-3 text-center">Parent</th></tr></thead>
+<tbody class="divide-y divide-slate-100 font-medium">
+<tr><td class="px-4 py-3 font-semibold text-slate-800">Student Admissions & Edit</td><td class="px-4 py-3 text-center text-emerald-600"><i class="fa-solid fa-circle-check text-base"></i></td><td class="px-4 py-3 text-center text-slate-300"><i class="fa-solid fa-circle-xmark text-base"></i></td><td class="px-4 py-3 text-center text-amber-500 font-bold text-[11px]">View Only</td><td class="px-4 py-3 text-center text-amber-500 font-bold text-[11px]">Child Only</td></tr>
+<tr><td class="px-4 py-3 font-semibold text-slate-800">Fee Recording & MoMo Recon.</td><td class="px-4 py-3 text-center text-emerald-600"><i class="fa-solid fa-circle-check text-base"></i></td><td class="px-4 py-3 text-center text-emerald-600"><i class="fa-solid fa-circle-check text-base"></i></td><td class="px-4 py-3 text-center text-slate-300"><i class="fa-solid fa-circle-xmark text-base"></i></td><td class="px-4 py-3 text-center text-amber-500 font-bold text-[11px]">Pay Online</td></tr>
+<tr><td class="px-4 py-3 font-semibold text-slate-800">Exams, Marks & Reports</td><td class="px-4 py-3 text-center text-emerald-600"><i class="fa-solid fa-circle-check text-base"></i></td><td class="px-4 py-3 text-center text-slate-300"><i class="fa-solid fa-circle-xmark text-base"></i></td><td class="px-4 py-3 text-center text-emerald-600"><i class="fa-solid fa-circle-check text-base"></i></td><td class="px-4 py-3 text-center text-amber-500 font-bold text-[11px]">View PDF</td></tr>
+<tr><td class="px-4 py-3 font-semibold text-slate-800">Daily Attendance Marking</td><td class="px-4 py-3 text-center text-emerald-600"><i class="fa-solid fa-circle-check text-base"></i></td><td class="px-4 py-3 text-center text-slate-300"><i class="fa-solid fa-circle-xmark text-base"></i></td><td class="px-4 py-3 text-center text-emerald-600"><i class="fa-solid fa-circle-check text-base"></i></td><td class="px-4 py-3 text-center text-amber-500 font-bold text-[11px]">SMS Alert</td></tr>
+<tr><td class="px-4 py-3 font-semibold text-slate-800">Expenses & Disbursements</td><td class="px-4 py-3 text-center text-emerald-600"><i class="fa-solid fa-circle-check text-base"></i></td><td class="px-4 py-3 text-center text-emerald-600"><i class="fa-solid fa-circle-check text-base"></i></td><td class="px-4 py-3 text-center text-slate-300"><i class="fa-solid fa-circle-xmark text-base"></i></td><td class="px-4 py-3 text-center text-slate-300"><i class="fa-solid fa-circle-xmark text-base"></i></td></tr>
+</tbody></table></div>
+</div>
+<div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+<h3 class="font-bold text-slate-900 text-base mb-4">Official School Metadata (Effiduasi Campus)</h3>
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
+<div><label class="font-bold text-slate-600 block mb-1">Institution Name</label><input type="text" value="Morning Dew Montessori School" class="w-full border border-slate-200 rounded-lg p-2.5 font-medium bg-slate-50" readonly></div>
+<div><label class="font-bold text-slate-600 block mb-1">Town / District</label><input type="text" value="Effiduasi, Sekyere East District" class="w-full border border-slate-200 rounded-lg p-2.5 font-medium bg-slate-50" readonly></div>
+<div><label class="font-bold text-slate-600 block mb-1">Region</label><input type="text" value="Ashanti Region, Ghana" class="w-full border border-slate-200 rounded-lg p-2.5 font-medium bg-slate-50" readonly></div>
+<div><label class="font-bold text-slate-600 block mb-1">GES Registration No.</label><input type="text" value="GES/ASH/SE/PR/2016/044" class="w-full border border-slate-200 rounded-lg p-2.5 font-medium font-mono bg-slate-50" readonly></div>
+<div><label class="font-bold text-slate-600 block mb-1">Official Mobile / MoMo</label><input type="text" value="+233 24 456 7890 (MTN MoMo)" class="w-full border border-slate-200 rounded-lg p-2.5 font-medium bg-slate-50" readonly></div>
+<div><label class="font-bold text-slate-600 block mb-1">Bursary Bank Account</label><input type="text" value="GCB Bank - Effiduasi (6021...)" class="w-full border border-slate-200 rounded-lg p-2.5 font-medium bg-slate-50" readonly></div>
+</div>
+</div>
+</section>
+
+</main>
+</div>
+
+<!-- MODALS -->
+<div id="modal-add-student" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4" onclick="if(event.target===this)closeModal('modal-add-student')">
+<div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl border border-slate-200 modal-anim">
+<div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-900 text-white rounded-t-2xl sticky top-0 z-10"><div><h3 class="font-bold text-base">New Student Enrolment</h3><p class="text-xs text-orange-400">Morning Dew Montessori • Effiduasi Campus</p></div><button onclick="closeModal('modal-add-student')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button></div>
+<form onsubmit="handleSaveStudent(event)" class="p-6 space-y-4 text-xs">
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<div><label class="font-bold text-slate-700 block mb-1">First & Middle Name *</label><input type="text" id="new-stu-firstname" required placeholder="e.g. Kwadwo Boateng" class="w-full border border-slate-300 rounded-lg p-2.5 focus:border-[#E65100] focus:ring-2 focus:ring-[#E65100]/20"></div>
+<div><label class="font-bold text-slate-700 block mb-1">Surname *</label><input type="text" id="new-stu-lastname" required placeholder="e.g. Mensah" class="w-full border border-slate-300 rounded-lg p-2.5 focus:border-[#E65100] focus:ring-2 focus:ring-[#E65100]/20"></div>
+<div><label class="font-bold text-slate-700 block mb-1">Class Assigned *</label><select id="new-stu-class" required class="w-full border border-slate-300 rounded-lg p-2.5 bg-white"><option>Creche</option><option>Nursery 1</option><option>Nursery 2</option><option>KG 1</option><option>KG 2</option><option>Basic 1</option><option>Basic 2</option><option>Basic 3</option><option selected>Basic 4</option><option>Basic 5</option><option>Basic 6</option><option>JHS 1</option><option>JHS 2</option><option>JHS 3</option></select></div>
+<div><label class="font-bold text-slate-700 block mb-1">Gender *</label><select id="new-stu-gender" required class="w-full border border-slate-300 rounded-lg p-2.5 bg-white"><option>Male</option><option>Female</option></select></div>
+<div><label class="font-bold text-slate-700 block mb-1">Date of Birth</label><input type="date" id="new-stu-dob" value="2016-04-12" class="w-full border border-slate-300 rounded-lg p-2.5"></div>
+<div><label class="font-bold text-slate-700 block mb-1">Ghana Card / Birth Cert</label><input type="text" id="new-stu-ghcard" placeholder="GHA-000000000-0" class="w-full border border-slate-300 rounded-lg p-2.5 font-mono"></div>
+</div>
+<div class="pt-3 border-t border-slate-200"><h4 class="font-bold text-slate-900 text-sm mb-3">Guardian & Residential Information</h4>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<div><label class="font-bold text-slate-700 block mb-1">Guardian Name *</label><input type="text" id="new-stu-guardian" required placeholder="e.g. Dr. Kwame Osei" class="w-full border border-slate-300 rounded-lg p-2.5"></div>
+<div><label class="font-bold text-slate-700 block mb-1">Guardian Phone (SMS) *</label><input type="tel" id="new-stu-phone" required placeholder="024 123 4567" class="w-full border border-slate-300 rounded-lg p-2.5 font-mono"></div>
+<div class="sm:col-span-2"><label class="font-bold text-slate-700 block mb-1">Residential Address</label><input type="text" id="new-stu-residence" placeholder="e.g. Near Effiduasi District Hospital" class="w-full border border-slate-300 rounded-lg p-2.5"></div>
+</div></div>
+<div class="pt-4 flex justify-end gap-2"><button type="button" onclick="closeModal('modal-add-student')" class="px-4 py-2 border border-slate-300 rounded-lg font-bold text-slate-600 hover:bg-slate-50">Cancel</button><button type="submit" class="px-5 py-2 bg-[#E65100] hover:bg-[#BF360C] text-white rounded-lg font-bold shadow-md">Complete Admission</button></div>
+</form>
+</div>
+</div>
+
+<div id="modal-record-fee" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4" onclick="if(event.target===this)closeModal('modal-record-fee')">
+<div class="bg-white rounded-2xl max-w-md w-full max-h-[92vh] overflow-y-auto custom-scrollbar shadow-2xl border border-slate-200 modal-anim">
+<div class="p-5 border-b border-slate-100 flex items-center justify-between bg-[#E65100] text-white rounded-t-2xl"><div><h3 class="font-bold text-base">Bursary Fee Collection</h3><p class="text-xs text-orange-100">Issue official receipt to guardian</p></div><button onclick="closeModal('modal-record-fee')" class="text-white hover:text-orange-200"><i class="fa-solid fa-xmark text-lg"></i></button></div>
+<form onsubmit="handleSavePayment(event)" class="p-5 space-y-4 text-xs">
+<div><label class="font-bold text-slate-700 block mb-1">Select Student *</label><select id="pay-student-select" required class="w-full border border-slate-300 rounded-lg p-2.5 font-medium bg-white"><option value="Kofi Mensah Boateng">Kofi Mensah Boateng (Basic 4 A) - Bal: GH₵ 350</option><option value="Akua Afriyie Osei">Akua Afriyie Osei (KG 1 B) - Bal: GH₵ 200</option><option value="Emmanuel Kwaku Frimpong">Emmanuel Kwaku Frimpong (JHS 2) - Bal: GH₵ 600</option><option value="Yaa Asantewaa Prempeh">Yaa Asantewaa Prempeh (Nursery 2) - Bal: GH₵ 150</option><option value="Ama Serwaa">Ama Serwaa (KG 2) - Bal: GH₵ 450</option></select></div>
+<div><label class="font-bold text-slate-700 block mb-1">Amount (GH₵) *</label><div class="relative"><span class="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">GH₵</span><input type="number" id="pay-amount" required step="10" min="10" value="350" class="w-full pl-12 pr-3 py-2.5 border border-slate-300 rounded-lg font-bold text-slate-900"></div></div>
+<div><label class="font-bold text-slate-700 block mb-1">Payment Channel *</label><select id="pay-channel" required class="w-full border border-slate-300 rounded-lg p-2.5 font-bold bg-white"><option>MTN MoMo</option><option>Telecel Cash</option><option>Cash @ Bursary</option><option>GCB Bank Deposit</option></select></div>
+<div><label class="font-bold text-slate-700 block mb-1">Transaction Ref</label><input type="text" id="pay-ref" placeholder="e.g. 19827389281 (MoMo ID)" class="w-full border border-slate-300 rounded-lg p-2.5 font-mono"></div>
+<div><label class="font-bold text-slate-700 block mb-1">Fee Category</label><select id="pay-category" class="w-full border border-slate-300 rounded-lg p-2.5 bg-white"><option>Tuition & Montessori Materials</option><option>Feeding & Canteen Fee</option><option>Bus / Transportation Route</option><option>Full Package Term Settlement</option></select></div>
+<div class="pt-3 flex justify-end gap-2"><button type="button" onclick="closeModal('modal-record-fee')" class="px-4 py-2 border border-slate-300 rounded-lg font-bold text-slate-600">Cancel</button><button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold">Post & SMS Receipt</button></div>
+</form>
+</div>
+</div>
+
+<div id="modal-add-expense" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4" onclick="if(event.target===this)closeModal('modal-add-expense')">
+<div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 modal-anim">
+<div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-900 text-white rounded-t-2xl"><div><h3 class="font-bold text-base">Record Operational Expense</h3><p class="text-xs text-slate-400">School accounts disbursement</p></div><button onclick="closeModal('modal-add-expense')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button></div>
+<form onsubmit="handleSaveExpense(event)" class="p-5 space-y-4 text-xs">
+<div><label class="font-bold text-slate-700 block mb-1">Expense Category *</label><select id="exp-category" required class="w-full border border-slate-300 rounded-lg p-2.5 bg-white font-medium"><option>Bus & Fleet Fuel</option><option>Montessori Practical Learning Supplies</option><option>Kitchen & Feeding Provisions</option><option>ECG Electricity / Utilities</option><option>Facility Maintenance & Sanitation</option><option>Staff Salaries & Allowances</option></select></div>
+<div><label class="font-bold text-slate-700 block mb-1">Amount (GH₵) *</label><input type="number" id="exp-amount" required min="1" placeholder="450" class="w-full border border-slate-300 rounded-lg p-2.5 font-bold"></div>
+<div><label class="font-bold text-slate-700 block mb-1">Description / Beneficiary *</label><input type="text" id="exp-desc" required placeholder="e.g. GOIL Fuel Refill for Bus 1" class="w-full border border-slate-300 rounded-lg p-2.5"></div>
+<div><label class="font-bold text-slate-700 block mb-1">Authorized By</label><input type="text" value="Nana Yaw Boateng (Headmaster)" class="w-full border border-slate-300 rounded-lg p-2.5 bg-slate-50" readonly></div>
+<div class="pt-3 flex justify-end gap-2"><button type="button" onclick="closeModal('modal-add-expense')" class="px-4 py-2 border border-slate-300 rounded-lg font-bold text-slate-600">Cancel</button><button type="submit" class="px-5 py-2 bg-[#E65100] text-white rounded-lg font-bold hover:bg-[#BF360C]">Save Voucher</button></div>
+</form>
+</div>
+</div>
+
+<div id="modal-add-staff" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4" onclick="if(event.target===this)closeModal('modal-add-staff')">
+<div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 modal-anim">
+<div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-900 text-white rounded-t-2xl"><div><h3 class="font-bold text-base">Register Staff / Faculty</h3><p class="text-xs text-orange-400">Morning Dew Faculty Board</p></div><button onclick="closeModal('modal-add-staff')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button></div>
+<form onsubmit="handleSaveStaff(event)" class="p-5 space-y-3 text-xs">
+<div><label class="font-bold text-slate-700 block mb-1">Full Name & Title *</label><input type="text" id="staff-name" required placeholder="e.g. Mrs. Vivian Danso" class="w-full border border-slate-300 rounded-lg p-2.5 font-semibold"></div>
+<div class="grid grid-cols-2 gap-3">
+<div><label class="font-bold text-slate-700 block mb-1">Role *</label><select id="staff-role" class="w-full border border-slate-300 rounded-lg p-2.5 bg-white"><option>Lead Facilitator</option><option>Subject Teacher</option><option>Montessori Specialist</option><option>Accounts / Bursary</option><option>Administrative Staff</option></select></div>
+<div><label class="font-bold text-slate-700 block mb-1">Assigned Class / Dept</label><input type="text" id="staff-dept" placeholder="e.g. KG 2 Lead" class="w-full border border-slate-300 rounded-lg p-2.5"></div>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<div><label class="font-bold text-slate-700 block mb-1">Phone (Ghana)</label><input type="tel" id="staff-phone" placeholder="024 XXX XXXX" class="w-full border border-slate-300 rounded-lg p-2.5 font-mono"></div>
+<div><label class="font-bold text-slate-700 block mb-1">Qualification</label><input type="text" id="staff-qual" placeholder="B.Ed / Dip. Montessori" class="w-full border border-slate-300 rounded-lg p-2.5"></div>
+</div>
+<div class="pt-3 flex justify-end gap-2"><button type="button" onclick="closeModal('modal-add-staff')" class="px-4 py-2 border border-slate-300 rounded-lg font-bold text-slate-600">Cancel</button><button type="submit" class="px-5 py-2 bg-[#E65100] text-white rounded-lg font-bold hover:bg-[#BF360C]">Save Profile</button></div>
+</form>
+</div>
+</div>
+
+<div id="modal-broadcast-notice" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4" onclick="if(event.target===this)closeModal('modal-broadcast-notice')">
+<div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 modal-anim">
+<div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-900 text-white rounded-t-2xl"><div><h3 class="font-bold text-base">Broadcast Notice / SMS</h3><p class="text-xs text-slate-400">Arkesel SMS • 394 guardians • Effiduasi</p></div><button onclick="closeModal('modal-broadcast-notice')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button></div>
+<form onsubmit="handleSaveNotice(event)" class="p-5 space-y-4 text-xs">
+<div><label class="font-bold text-slate-700 block mb-1">Notice Title *</label><input type="text" id="notice-title" required placeholder="e.g. Term 2 PTA Meeting - Thursday" class="w-full border border-slate-300 rounded-lg p-2.5 font-semibold"></div>
+<div class="grid grid-cols-2 gap-3">
+<div><label class="font-bold text-slate-700 block mb-1">Audience *</label><select id="notice-audience" class="w-full border border-slate-300 rounded-lg p-2.5 bg-white font-medium"><option>All Parents & Guardians</option><option>Creche & KG Parents</option><option>Primary Parents</option><option>JHS Parents</option><option>Staff Only</option></select></div>
+<div><label class="font-bold text-slate-700 block mb-1">Priority</label><select id="notice-priority" class="w-full border border-slate-300 rounded-lg p-2.5 bg-white font-medium"><option>General</option><option>Urgent</option><option>Fee Reminder</option><option>Event</option></select></div>
+</div>
+<div><label class="font-bold text-slate-700 block mb-1">Message Body *</label><textarea id="notice-body" required rows="4" placeholder="Dear Parents, ..." class="w-full border border-slate-300 rounded-lg p-2.5"></textarea><p class="text-[10px] text-slate-400 mt-1"><span id="sms-count">0</span>/160 chars • 1 SMS credit per guardian</p></div>
+<div class="pt-2 flex justify-end gap-2"><button type="button" onclick="closeModal('modal-broadcast-notice')" class="px-4 py-2 border border-slate-300 rounded-lg font-bold text-slate-600">Cancel</button><button type="submit" class="px-5 py-2 bg-[#E65100] hover:bg-[#BF360C] text-white rounded-lg font-bold"><i class="fa-solid fa-paper-plane mr-1"></i> Send Broadcast</button></div>
+</form>
+</div>
+</div>
+
+<div id="modal-report-card" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center p-4" onclick="if(event.target===this)closeModal('modal-report-card')">
+<div class="bg-white rounded-2xl max-w-2xl w-full max-h-[92vh] overflow-y-auto custom-scrollbar shadow-2xl modal-anim">
+<div class="p-4 border-b flex items-center justify-between bg-slate-900 text-white rounded-t-2xl no-print sticky top-0 z-10"><div><h3 class="font-bold text-sm">Terminal Report Card • GES Format</h3><p class="text-[11px] text-slate-400">Term 2, 2024/2025 Academic Year</p></div><div class="flex gap-2"><button onclick="window.print()" class="text-xs bg-[#E65100] px-3 py-1.5 rounded-lg font-bold"><i class="fa-solid fa-print mr-1"></i> Print</button><button onclick="closeModal('modal-report-card')" class="text-slate-400 hover:text-white px-2"><i class="fa-solid fa-xmark"></i></button></div></div>
+<div class="p-6" id="report-card-content"></div>
+</div>
+</div>
+
+<div id="modal-student-profile" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4" onclick="if(event.target===this)closeModal('modal-student-profile')">
+<div class="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl modal-anim">
+<div class="p-5 bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-t-2xl flex items-center justify-between"><div><h3 class="font-bold text-base">Pupil & Parent Record</h3><p class="text-xs text-orange-400" id="profile-code">MDM-2024-001</p></div><button onclick="closeModal('modal-student-profile')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button></div>
+<div class="p-5 text-xs space-y-4" id="student-profile-content"></div>
+</div>
+</div>
+
+<div id="modal-receipt" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4" onclick="if(event.target===this)closeModal('modal-receipt')">
+<div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl modal-anim overflow-hidden">
+<div class="p-4 bg-slate-900 text-white flex items-center justify-between no-print"><h3 class="font-bold text-sm">Official Receipt</h3><button onclick="closeModal('modal-receipt')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button></div>
+<div class="p-6 text-xs" id="receipt-content"></div>
+<div class="p-4 border-t flex gap-2 no-print"><button onclick="window.print()" class="flex-1 py-2 bg-slate-900 text-white rounded-lg font-bold text-xs"><i class="fa-solid fa-print mr-1"></i> Print</button><button onclick="closeModal('modal-receipt')" class="flex-1 py-2 bg-slate-100 rounded-lg font-bold text-xs">Close</button></div>
+</div>
+</div>
+
+<script>
+let students=[
+{id:'MDM-2024-001',name:'Kofi Mensah Boateng',cls:'Basic 4',gender:'Male',age:9,guardian:'Kwame Boateng',phone:'0244 123 456',fee:'Paid',balance:0,dob:'2016-04-12',residence:'Near Effiduasi Hospital',gh:'GHA-721884012-1'},
+{id:'MDM-2024-002',name:'Abena Pokuaa Owusu',cls:'Basic 4',gender:'Female',age:9,guardian:'Efya Owusu',phone:'0556 789 012',fee:'Paid',balance:0,dob:'2016-02-20',residence:'Asokore Road, Effiduasi',gh:'GHA-901224511-2'},
+{id:'MDM-2024-003',name:'Kwame Ofori Atta',cls:'Basic 4',gender:'Male',age:10,guardian:'Yaw Atta',phone:'0242 555 890',fee:'Partial',balance:350,dob:'2015-09-11',residence:'Juaben Station Area',gh:'GHA-551122009-0'},
+{id:'MDM-2023-118',name:'Ama Serwaa',cls:'KG 2',gender:'Female',age:5,guardian:'Akosua Serwaa',phone:'0208 112 334',fee:'Partial',balance:450,dob:'2020-06-03',residence:'Effiduasi New Town',gh:'Birth Cert: 45201'},
+{id:'MDM-2022-045',name:'Akua Afriyie Osei',cls:'KG 1',gender:'Female',age:4,guardian:'Kwabena Osei',phone:'0249 887 112',fee:'Paid',balance:0,dob:'2021-01-15',residence:'Effiduasi Market Area',gh:'Birth Cert: 88912'},
+{id:'MDM-2023-089',name:'Emmanuel Kwaku Frimpong',cls:'JHS 2',gender:'Male',age:13,guardian:'Ama Frimpong',phone:'0541 223 445',fee:'Owes',balance:600,dob:'2012-11-02',residence:'Effiduasi Zongo',gh:'GHA-330012884-5'},
+{id:'MDM-2023-102',name:'Yaa Asantewaa Prempeh',cls:'Nursery 2',gender:'Female',age:3,guardian:'Kofi Prempeh',phone:'0243 667 889',fee:'Paid',balance:0,dob:'2022-03-22',residence:'Effiduasi Palace Road',gh:'Birth Cert: 99012'},
+{id:'MDM-2024-010',name:'Efya Nyarko Mensimah',cls:'Basic 2',gender:'Female',age:7,guardian:'Adwoa Mensimah',phone:'0255 441 209',fee:'Owes',balance:850,dob:'2018-07-19',residence:'Asokore-Effiduasi Rd',gh:'GHA-118822009-3'}
+];
+let staffMembers=[
+{name:'Mr. Michael Appiah',role:'Lead Facilitator',dept:'Basic 4 A • Class Teacher',phone:'0244 200 111',qual:'B.Ed Basic Education',initials:'MA',color:'bg-[#E65100]',status:'Present'},
+{name:'Mrs. Grace Osei Tutu',role:'Montessori Specialist',dept:'KG Wing Lead',phone:'0551 400 222',qual:'Dip. Montessori (AMI)',initials:'GO',color:'bg-blue-600',status:'Present'},
+{name:'Ms. Akosua Frimpomaa',role:'Subject Teacher',dept:'JHS • Integrated Science',phone:'0208 300 333',qual:'BSc Integrated Science',initials:'AF',color:'bg-purple-600',status:'Present'},
+{name:'Mr. Kwame Adjei',role:'Accounts / Bursary',dept:'Bursary & MoMo Recon.',phone:'0242 900 444',qual:'HND Accounting',initials:'KA',color:'bg-emerald-600',status:'Present'},
+{name:'Mrs. Vivian Danso',role:'Lead Facilitator',dept:'Nursery Wing',phone:'0540 112 555',qual:'B.Ed Early Childhood',initials:'VD',color:'bg-amber-500',status:'On Leave'},
+{name:'Mr. Yaw Boakye',role:'Administrative Staff',dept:'Transport & Logistics',phone:'0245 778 666',qual:'Dip. Management',initials:'YB',color:'bg-slate-700',status:'Present'}
+];
+let classCards=[
+{title:'Creche & Nursery',range:'Ages 1 – 4 • 78 Pupils',teacher:'Mrs. Vivian Danso',color:'bg-amber-500',subjects:['Sensorial Play','Phonics Songs','Practical Life','Art & Rhymes'],attendance:'98%',rooms:'3 Classrooms'},
+{title:'Kindergarten (KG 1–2)',range:'Ages 4 – 6 • 112 Pupils',teacher:'Mrs. Grace Osei Tutu',color:'bg-[#E65100]',subjects:['Language','Number Work','Twi Rhymes','Computing Intro','Creative Arts'],attendance:'97%',rooms:'4 Classrooms'},
+{title:'Lower Primary (B1–B3)',range:'Ages 6 – 9 • 88 Pupils',teacher:'Mr. Michael Appiah',color:'bg-blue-600',subjects:['English','Mathematics','Science','Twi','RME','History'],attendance:'96%',rooms:'3 Classrooms'},
+{title:'Upper Primary (B4–B6)',range:'Ages 9 – 12 • 76 Pupils',teacher:'Mr. Daniel Owusu',color:'bg-indigo-600',subjects:['English','Maths','Science','Computing','French','Career Tech'],attendance:'95%',rooms:'3 Classrooms'},
+{title:'Junior High (JHS 1–3)',range:'Ages 12 – 15 • 74 Students',teacher:'Ms. Akosua Frimpomaa',color:'bg-emerald-600',subjects:['Eng','Maths','Int. Science','Social Studies','ICT','Twi','French'],attendance:'94%',rooms:'3 Classrooms'},
+{title:'Clubs & Enrichment',range:'All Tiers • 210 Members',teacher:'Mr. Yaw Boakye',color:'bg-slate-800',subjects:['Choir','Cadet','Football','Robotics','Drama','Reading Club'],attendance:'91%',rooms:'Hall + Field'}
+];
+let feeTransactions=[
+{date:'Today, 09:42 AM',receipt:'#MDM-2489',student:'Kofi Mensah Boateng',cls:'Basic 4 A',channel:'MTN MoMo',category:'Tuition & Materials',amount:850},
+{date:'Today, 08:15 AM',receipt:'#MDM-2488',student:'Akua Afriyie Osei',cls:'KG 1 B',channel:'Telecel Cash',category:'Full Package Settlement',amount:600},
+{date:'Yesterday, 03:20 PM',receipt:'#MDM-2487',student:'Emmanuel Kwaku Frimpong',cls:'JHS 2',channel:'GCB Deposit',category:'Tuition & Materials',amount:1400},
+{date:'Yesterday, 11:05 AM',receipt:'#MDM-2486',student:'Yaa Asantewaa Prempeh',cls:'Nursery 2',channel:'Cash @ Bursary',category:'Feeding & Canteen',amount:450},
+{date:'02 Jun, 10:30 AM',receipt:'#MDM-2485',student:'Ama Serwaa',cls:'KG 2',channel:'MTN MoMo',category:'Bus / Transport',amount:1200},
+{date:'01 Jun, 02:10 PM',receipt:'#MDM-2484',student:'Kwame Ofori Atta',cls:'Basic 4 A',channel:'MTN MoMo',category:'Feeding & Canteen',amount:500}
+];
+let expenseRecords=[
+{date:'03 Jun 2026',voucher:'VCH-0912',category:'Bus & Fleet Fuel',desc:'GOIL Fuel Refill – Bus 1 (Effiduasi Route)',by:'N. Y. Boateng',amount:1200},
+{date:'02 Jun 2026',voucher:'VCH-0911',category:'Kitchen & Feeding',desc:'Rice, Beans & Oil – Auntie Adwoa Supplies',by:'N. Y. Boateng',amount:3400},
+{date:'30 May 2026',voucher:'VCH-0910',category:'Montessori Supplies',desc:'Wooden Sensorial Materials – KG Wing',by:'G. Osei Tutu',amount:1850},
+{date:'28 May 2026',voucher:'VCH-0909',category:'ECG / Utilities',desc:'ECG Prepaid + Ghana Water Bills',by:'N. Y. Boateng',amount:900},
+{date:'25 May 2026',voucher:'VCH-0908',category:'Maintenance',desc:'Plumbing Repairs – Primary Block',by:'Y. Boakye',amount:650}
+];
+let noticePosts=[
+{title:'Term 2 PTA Meeting – Thursday 14th',audience:'All Parents',priority:'Urgent',date:'2 hrs ago',body:'All guardians are invited to the Term 2 PTA meeting at the Assembly Hall, 10:00 AM prompt. Agenda: BECE prep, bus routes & feeding review.',color:'border-l-rose-500',badge:'bg-rose-100 text-rose-700',icon:'fa-triangle-exclamation'},
+{title:'MoMo Fee Settlement Reminder',audience:'Debtors (48)',priority:'Fee Reminder',date:'Yesterday',body:'Kindly settle outstanding Term 2 balances via MTN MoMo 0244567890 (Morning Dew) or at the Bursary. Receipts issued instantly via SMS.',color:'border-l-amber-500',badge:'bg-amber-100 text-amber-700',icon:'fa-money-bill-wave'},
+{title:'Inter-Schools Spelling Bee Victory',audience:'General',priority:'General',date:'2 days ago',body:'Congratulations! Our Basic 5 team placed 1st in the Sekyere East Spelling Bee. Special thanks to facilitators and proud parents.',color:'border-l-emerald-500',badge:'bg-emerald-100 text-emerald-700',icon:'fa-trophy'},
+{title:'Mid-Term Health Screening',audience:'Creche & KG',priority:'Event',date:'3 days ago',body:'Free eye & dental screening for Creche–KG pupils next Monday in partnership with Effiduasi District Hospital. Consent forms at front desk.',color:'border-l-blue-500',badge:'bg-blue-100 text-blue-700',icon:'fa-stethoscope'}
+];
+let examRows=[
+{name:'Kofi Mensah Boateng',id:'MDM-2024-001',scores:[88,92,85,90,95],remark:'Exemplary Practical Skills',rc:'bg-emerald-50 text-emerald-700'},
+{name:'Abena Pokuaa Owusu',id:'MDM-2024-002',scores:[76,81,78,84,80],remark:'Very Active & Attentive',rc:'bg-blue-50 text-blue-700'},
+{name:'Kwame Ofori Atta',id:'MDM-2024-003',scores:[62,68,70,74,65],remark:'Needs Math Mentoring',rc:'bg-amber-50 text-amber-700'},
+{name:'Efya Nyarko Mensimah',id:'MDM-2024-010',scores:[84,79,88,82,86],remark:'Excellent Language Arts',rc:'bg-purple-50 text-purple-700'}
+];
+let receiptCounter=2490, voucherCounter=913;
+const breadcrumbs={dashboard:'Executive Dashboard',students:'Student Management',staff:'Staff & Teachers',classes:'Classes & Subjects',attendance:'Daily Attendance',fees:'Fees & Payments (MoMo)',expenses:'School Expenses',exams:'Exams & Report Cards',notices:'Notice Board & SMS',reports:'Reports & Analytics',settings:'Roles, Permissions & Cloud'};
+
+function toggleSidebar(){const sb=document.getElementById('main-sidebar'),bd=document.getElementById('sidebar-backdrop');const isHidden=sb.classList.contains('-translate-x-full');if(isHidden){sb.classList.remove('-translate-x-full');bd.classList.remove('hidden');setTimeout(()=>bd.classList.remove('opacity-0'),10)}else{if(window.innerWidth<1024){sb.classList.add('-translate-x-full');bd.classList.add('opacity-0');setTimeout(()=>bd.classList.add('hidden'),300)}}}
+function switchView(view){['dashboard','students','staff','classes','attendance','fees','expenses','exams','notices','reports','settings'].forEach(v=>{document.getElementById('view-'+v).classList.add('hidden');const n=document.getElementById('nav-'+v);if(n)n.classList.remove('active-nav-link')});document.getElementById('view-'+view).classList.remove('hidden');const nav=document.getElementById('nav-'+view);if(nav)nav.classList.add('active-nav-link');document.getElementById('header-breadcrumb').textContent=breadcrumbs[view]||view;const m=document.getElementById('header-breadcrumb-mobile');if(m)m.textContent=breadcrumbs[view]||view;document.querySelector('main').scrollTop=0;if(window.innerWidth<1024){document.getElementById('main-sidebar').classList.add('-translate-x-full');const bd=document.getElementById('sidebar-backdrop');bd.classList.add('opacity-0');setTimeout(()=>bd.classList.add('hidden'),300)}document.getElementById('notification-dropdown').classList.add('hidden')}
+function toggleNotificationDropdown(){document.getElementById('notification-dropdown').classList.toggle('hidden')}
+document.addEventListener('click',e=>{const dd=document.getElementById('notification-dropdown');if(dd&&!dd.classList.contains('hidden')&&!e.target.closest('#notification-dropdown')&&!e.target.closest('[onclick="toggleNotificationDropdown()"]'))dd.classList.add('hidden')});
+function showToast(msg,type='success'){const c=document.getElementById('toast-container');const colors={success:['bg-emerald-600','fa-circle-check'],info:['bg-blue-600','fa-circle-info'],error:['bg-rose-600','fa-circle-exclamation'],warning:['bg-amber-600','fa-triangle-exclamation']};const[col,icon]=colors[type]||colors.success;const d=document.createElement('div');d.className=`${col} text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2.5 pointer-events-auto toast-anim max-w-sm`;d.innerHTML=`<i class="fa-solid ${icon} text-sm"></i><span>${msg}</span>`;c.appendChild(d);setTimeout(()=>{d.style.transition='all .4s';d.style.opacity='0';d.style.transform='translateX(100%)';setTimeout(()=>d.remove(),400)},3500)}
+function openModal(id){const m=document.getElementById(id);m.classList.remove('hidden');m.classList.add('flex');document.body.style.overflow='hidden'}
+function closeModal(id){const m=document.getElementById(id);m.classList.add('hidden');m.classList.remove('flex');document.body.style.overflow=''}
+function initials(name){return name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()}
+function feeBadge(f){if(f==='Paid')return '<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold text-[10px]">Paid Up</span>';if(f==='Partial')return '<span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-bold text-[10px]">Partial</span>';return '<span class="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 font-bold text-[10px]">Owes Fees</span>'}
+function channelBadge(ch){if(ch.includes('MTN'))return '<span class="px-2 py-0.5 rounded bg-amber-50 text-amber-700 font-bold border border-amber-200 whitespace-nowrap">MTN MoMo</span>';if(ch.includes('Telecel'))return '<span class="px-2 py-0.5 rounded bg-red-50 text-red-700 font-bold border border-red-200 whitespace-nowrap">Telecel Cash</span>';if(ch.includes('GCB'))return '<span class="px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-bold border border-blue-200 whitespace-nowrap">GCB Deposit</span>';return '<span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-bold border border-slate-200 whitespace-nowrap">Cash @ Bursary</span>'}
+function filterStudents(){const q=(document.getElementById('student-search-input').value||'').toLowerCase();const cf=document.getElementById('student-filter-class').value;const ff=document.getElementById('student-filter-fee').value;const tb=document.getElementById('student-table-body');const filtered=students.filter(s=>{const matchQ=!q||s.name.toLowerCase().includes(q)||s.id.toLowerCase().includes(q)||s.guardian.toLowerCase().includes(q)||s.phone.includes(q);const matchC=cf==='ALL'||s.cls.includes(cf);const matchF=ff==='ALL'||s.fee===ff;return matchQ&&matchC&&matchF});document.getElementById('student-count-badge').textContent=`Showing ${filtered.length} of 428 pupils`;tb.innerHTML=filtered.length?filtered.map(s=>`<tr class="hover:bg-slate-50/80 transition">
+<td class="px-5 py-3 font-mono text-slate-900 font-bold whitespace-nowrap">${s.id}</td>
+<td class="px-5 py-3"><div class="flex items-center gap-2.5"><div class="w-8 h-8 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 text-white flex items-center justify-center text-[10px] font-bold shrink-0">${initials(s.name)}</div><span class="font-bold text-slate-900 whitespace-nowrap">${s.name}</span></div></td>
+<td class="px-5 py-3 whitespace-nowrap"><span class="px-2 py-0.5 rounded bg-orange-50 text-[#E65100] font-bold border border-orange-200">${s.cls}</span></td>
+<td class="px-5 py-3 whitespace-nowrap">${s.gender} • ${s.age}yrs</td>
+<td class="px-5 py-3"><div class="font-semibold text-slate-900 whitespace-nowrap">${s.guardian}</div><div class="text-[11px] text-slate-500 font-mono">${s.phone}</div></td>
+<td class="px-5 py-3 whitespace-nowrap">${feeBadge(s.fee)}${s.balance?`<div class="text-[10px] text-rose-500 font-bold mt-0.5">Bal: GH₵ ${s.balance}</div>`:''}</td>
+<td class="px-5 py-3 text-right whitespace-nowrap"><button onclick="viewStudent('${s.id}')" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded" title="View parent record"><i class="fa-solid fa-eye"></i></button><button onclick="previewReportCard('${s.id}')" class="p-1.5 text-[#E65100] hover:bg-orange-50 rounded" title="Report card"><i class="fa-solid fa-file-pdf"></i></button><button onclick="openModal('modal-record-fee')" class="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded" title="Collect fee"><i class="fa-solid fa-receipt"></i></button></td></tr>`).join(''):'<tr><td colspan="7" class="px-5 py-10 text-center text-slate-400">No pupils match your filters.</td></tr>'}
+function viewStudent(id){const s=students.find(x=>x.id===id);if(!s)return;document.getElementById('profile-code').textContent=s.id+' • '+s.cls;document.getElementById('student-profile-content').innerHTML=`
+<div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border"><div class="w-12 h-12 rounded-full bg-gradient-to-br from-[#E65100] to-amber-500 text-white flex items-center justify-center font-black">${initials(s.name)}</div><div><p class="font-black text-slate-900 text-sm">${s.name}</p><p class="text-slate-500">${s.gender} • ${s.age} yrs • DOB: ${s.dob||'—'}</p><div class="mt-1">${feeBadge(s.fee)}</div></div></div>
+<div class="grid grid-cols-2 gap-3"><div class="p-3 border rounded-xl"><p class="font-bold text-slate-500 uppercase text-[10px] mb-1">Class</p><p class="font-bold text-slate-900">${s.cls}</p></div><div class="p-3 border rounded-xl"><p class="font-bold text-slate-500 uppercase text-[10px] mb-1">National ID</p><p class="font-mono font-bold text-slate-900">${s.gh||'—'}</p></div></div>
+<div class="p-3 border rounded-xl bg-orange-50/50"><p class="font-bold text-slate-900 mb-2"><i class="fa-solid fa-users text-[#E65100] mr-1"></i> Parent / Guardian Record</p><div class="space-y-1.5"><p><span class="text-slate-500">Name:</span> <strong>${s.guardian}</strong></p><p><span class="text-slate-500">Phone (SMS):</span> <strong class="font-mono">${s.phone}</strong></p><p><span class="text-slate-500">Residence:</span> <strong>${s.residence||'Effiduasi, Ashanti'}</strong></p></div><div class="flex gap-2 mt-3"><button onclick="showToast('SMS sent to ${s.phone}','info')" class="flex-1 py-2 bg-slate-900 text-white rounded-lg font-bold"><i class="fa-solid fa-message mr-1"></i> SMS Parent</button><button onclick="closeModal('modal-student-profile');openModal('modal-record-fee')" class="flex-1 py-2 bg-emerald-600 text-white rounded-lg font-bold">Collect Fee</button></div></div>`;openModal('modal-student-profile')}
+function renderStaff(){const q=((document.getElementById('staff-search')||{}).value||'').toLowerCase();const g=document.getElementById('staff-grid-container');const list=staffMembers.filter(s=>!q||s.name.toLowerCase().includes(q)||s.role.toLowerCase().includes(q)||s.dept.toLowerCase().includes(q));g.innerHTML=list.map(s=>`<div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 hover:shadow-md transition">
+<div class="flex items-start justify-between"><div class="flex items-center gap-3"><div class="w-12 h-12 rounded-xl ${s.color} text-white flex items-center justify-center font-black text-sm shrink-0">${s.initials}</div><div><p class="font-bold text-slate-900 text-sm">${s.name}</p><p class="text-[11px] text-[#E65100] font-bold">${s.role}</p></div></div><span class="text-[10px] font-bold px-2 py-0.5 rounded ${s.status==='Present'?'bg-emerald-100 text-emerald-700':'bg-amber-100 text-amber-700'}">${s.status}</span></div>
+<div class="mt-4 space-y-1.5 text-xs text-slate-600"><p><i class="fa-solid fa-briefcase w-4 text-slate-400"></i> ${s.dept}</p><p><i class="fa-solid fa-phone w-4 text-slate-400"></i> <span class="font-mono">${s.phone}</span></p><p><i class="fa-solid fa-certificate w-4 text-slate-400"></i> ${s.qual}</p></div>
+<div class="mt-4 pt-3 border-t border-slate-100 flex gap-2"><button onclick="showToast('Profile opened for ${s.name}','info')" class="flex-1 py-2 text-xs font-bold bg-slate-100 hover:bg-slate-200 rounded-lg">View Profile</button><button onclick="showToast('Message sent to ${s.name}','success')" class="flex-1 py-2 text-xs font-bold bg-orange-50 text-[#E65100] hover:bg-orange-100 rounded-lg border border-orange-200">Message</button></div></div>`).join('')}
+function renderClasses(){document.getElementById('classes-container').innerHTML=classCards.map(c=>`<div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition">
+<div class="p-4 ${c.color} text-white"><div class="flex items-center justify-between"><h3 class="font-bold text-sm">${c.title}</h3><span class="text-[10px] bg-white/20 px-2 py-0.5 rounded font-bold">${c.rooms}</span></div><p class="text-xs text-white/85 mt-0.5">${c.range}</p></div>
+<div class="p-4 text-xs"><p class="font-bold text-slate-900"><i class="fa-solid fa-user-tie text-slate-400 mr-1"></i> ${c.teacher}</p><div class="flex flex-wrap gap-1.5 mt-3">${c.subjects.map(s=>`<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded font-semibold text-[10px] border">${s}</span>`).join('')}</div>
+<div class="mt-3 flex items-center justify-between pt-3 border-t"><span class="text-slate-500">Attendance <strong class="text-emerald-600">${c.attendance}</strong></span><button onclick="switchView('attendance')" class="font-bold text-[#E65100] hover:underline">Open Register →</button></div></div></div>`).join('')}
+function attendanceListFor(cls){const base=[['Kofi Mensah Boateng','MDM-2024-001','0244 123 456'],['Abena Pokuaa Owusu','MDM-2024-002','0556 789 012'],['Kwame Ofori Atta','MDM-2024-003','0242 555 890'],['Efya Nyarko Mensimah','MDM-2024-010','0255 441 209'],['Yaw Darko Asare','MDM-2024-011','0247 990 112'],['Akosua Badu','MDM-2024-012','0553 221 908'],['Fiifi Coleman','MDM-2024-013','0209 334 556'],['Ama Konadu','MDM-2024-014','0241 778 334']];if(cls==='KG 2')return [['Ama Serwaa','MDM-2023-118','0208 112 334'],['Kojo Antwi','MDM-2023-119','0244 556 778'],['Esi Yankey','MDM-2023-120','0552 889 001'],['Nana Akua','MDM-2023-121','0249 112 883'],['Kwabena Mensah','MDM-2023-122','0207 445 119']];if(cls==='Nursery 1')return [['Yaa Asantewaa Prempeh','MDM-2023-102','0243 667 889'],['Kweku Manu','MDM-2023-103','0558 990 221'],['Adwoa Sika','MDM-2023-104','0246 112 009'],['Yaw Owusu','MDM-2023-105','0208 773 445']];if(cls==='JHS 1')return [['Emmanuel Kwaku Frimpong','MDM-2023-089','0541 223 445'],['Akosua Serwaa','MDM-2023-090','0248 553 221'],['Daniel Kusi','MDM-2023-091','0551 220 884'],['Lydia Owusu','MDM-2023-092','0243 991 228'],['Prince Amoah','MDM-2023-093','0209 118 773']];return base}
+function loadClassAttendance(){const cls=document.getElementById('attendance-class-select').value;document.getElementById('current-attendance-heading').textContent=`Marking: ${cls} • ${document.getElementById('attendance-date').value||'Today'}`;const list=attendanceListFor(cls);document.getElementById('attendance-table-body').innerHTML=list.map((p,i)=>`<tr class="hover:bg-slate-50">
+<td class="px-5 py-3 text-slate-400 font-bold">${i+1}</td><td class="px-5 py-3 font-mono font-bold text-slate-900 whitespace-nowrap">${p[1]}</td><td class="px-5 py-3 font-bold text-slate-900 whitespace-nowrap">${p[0]}</td><td class="px-5 py-3 font-mono whitespace-nowrap">${p[2]}</td>
+<td class="px-5 py-3"><div class="flex items-center justify-center gap-1.5">
+<label class="cursor-pointer"><input type="radio" name="att-${i}" value="present" class="att-radio hidden" checked onchange="updateAttCounts()"><span class="present-pill px-2.5 py-1 rounded-lg border text-[10px] font-bold bg-slate-50 text-slate-600 border-slate-200 inline-block">Present</span></label>
+<label class="cursor-pointer"><input type="radio" name="att-${i}" value="absent" class="att-radio hidden" onchange="updateAttCounts()"><span class="absent-pill px-2.5 py-1 rounded-lg border text-[10px] font-bold bg-slate-50 text-slate-600 border-slate-200 inline-block">Absent</span></label>
+<label class="cursor-pointer"><input type="radio" name="att-${i}" value="late" class="att-radio hidden" onchange="updateAttCounts()"><span class="late-pill px-2.5 py-1 rounded-lg border text-[10px] font-bold bg-slate-50 text-slate-600 border-slate-200 inline-block">Late</span></label>
+</div></td><td class="px-5 py-3"><input type="text" placeholder="e.g. Malaria, excused..." class="w-full text-xs border border-slate-200 rounded-lg px-2 py-1.5"></td></tr>`).join('');updateAttCounts()}
+function updateAttCounts(){const rows=document.querySelectorAll('#attendance-table-body tr').length;let p=0,a=0,l=0;document.querySelectorAll('#attendance-table-body input[type=radio]:checked').forEach(r=>{if(r.value==='present')p++;else if(r.value==='absent')a++;else l++});document.getElementById('att-present-count').textContent=p;document.getElementById('att-absent-count').textContent=a;document.getElementById('att-late-count').textContent=l;document.getElementById('att-rate').textContent=rows?Math.round((p+l*0.5)/rows*100)+'%':'0%'}
+function markAllAttendance(status){document.querySelectorAll('#attendance-table-body tr').forEach((_,i)=>{const r=document.querySelector(`input[name="att-${i}"][value="${status}"]`);if(r)r.checked=true});updateAttCounts();showToast(`All marked as ${status}`,'info')}
+function saveAttendance(){const p=document.getElementById('att-present-count').textContent,a=document.getElementById('att-absent-count').textContent;showToast(`Roll submitted: ${p} present, ${a} absent. SMS sent to absent guardians.`,'success')}
+function renderFees(){const q=((document.getElementById('fee-search')||{}).value||'').toLowerCase();const tb=document.getElementById('fees-ledger-body');const list=feeTransactions.filter(t=>!q||t.student.toLowerCase().includes(q)||t.receipt.toLowerCase().includes(q));tb.innerHTML=list.map(t=>`<tr class="hover:bg-slate-50/80 transition"><td class="px-5 py-3 whitespace-nowrap">${t.date}</td><td class="px-5 py-3 font-mono font-bold text-slate-900 whitespace-nowrap">${t.receipt}</td><td class="px-5 py-3"><div class="font-bold text-slate-900 whitespace-nowrap">${t.student}</div><div class="text-[10px] text-slate-500">${t.cls}</div></td><td class="px-5 py-3">${channelBadge(t.channel)}</td><td class="px-5 py-3 whitespace-nowrap">${t.category}</td><td class="px-5 py-3 font-black text-slate-900 whitespace-nowrap">GH₵ ${t.amount.toLocaleString()}.00</td><td class="px-5 py-3"><button onclick='printReceipt(${JSON.stringify(t).replace(/'/g,"&#39;")})' class="text-[#E65100] hover:bg-orange-50 p-1.5 rounded" title="Print receipt"><i class="fa-solid fa-print"></i></button></td></tr>`).join('');document.getElementById('dashboard-recent-fees').innerHTML=feeTransactions.slice(0,4).map(t=>`<tr class="hover:bg-slate-50/80 transition"><td class="px-5 py-3 font-mono text-slate-900">${t.receipt}</td><td class="px-5 py-3 font-semibold text-slate-900 whitespace-nowrap">${t.student}</td><td class="px-5 py-3 whitespace-nowrap">${t.cls}</td><td class="px-5 py-3">${channelBadge(t.channel)}</td><td class="px-5 py-3 font-bold text-slate-900 whitespace-nowrap">GH₵ ${t.amount.toLocaleString()}.00</td><td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-semibold text-[10px]">Verified</span></td></tr>`).join('')}
+function printReceipt(t){if(typeof t==='string')t=JSON.parse(t);document.getElementById('receipt-content').innerHTML=`<div class="text-center border-b pb-3 mb-3"><div class="w-10 h-10 mx-auto rounded-xl bg-gradient-to-br from-[#E65100] to-amber-500 flex items-center justify-center text-white mb-2"><i class="fa-solid fa-sun"></i></div><h4 class="font-black text-slate-900">MORNING DEW MONTESSORI</h4><p class="text-slate-500">Effiduasi, Ashanti • 0244567890</p><p class="font-mono font-bold mt-1">${t.receipt}</p></div><div class="space-y-2"><div class="flex justify-between"><span class="text-slate-500">Student</span><strong>${t.student}</strong></div><div class="flex justify-between"><span class="text-slate-500">Class</span><strong>${t.cls}</strong></div><div class="flex justify-between"><span class="text-slate-500">Channel</span><strong>${t.channel}</strong></div><div class="flex justify-between"><span class="text-slate-500">Category</span><strong>${t.category}</strong></div><div class="flex justify-between"><span class="text-slate-500">Date</span><strong>${t.date}</strong></div><div class="flex justify-between text-base pt-2 border-t"><span class="font-bold">Amount</span><span class="font-black text-emerald-600">GH₵ ${t.amount.toLocaleString()}.00</span></div></div><p class="text-center text-[10px] text-slate-400 mt-4">Thank you! • Verified • GES/ASH/SE/PR/2016/044</p>`;openModal('modal-receipt')}
+function renderExpenses(){document.getElementById('expenses-table-body').innerHTML=expenseRecords.map(e=>`<tr class="hover:bg-slate-50"><td class="px-5 py-3 whitespace-nowrap">${e.date}</td><td class="px-5 py-3 font-mono font-bold whitespace-nowrap">${e.voucher}</td><td class="px-5 py-3"><span class="px-2 py-0.5 bg-slate-100 border rounded font-bold whitespace-nowrap">${e.category}</span></td><td class="px-5 py-3 font-semibold text-slate-900">${e.desc}</td><td class="px-5 py-3 whitespace-nowrap">${e.by}</td><td class="px-5 py-3 font-black text-right whitespace-nowrap">GH₵ ${e.amount.toLocaleString()}.00</td></tr>`).join('')}
+function renderNotices(){document.getElementById('notices-grid').innerHTML=noticePosts.map((n,i)=>`<div class="bg-white rounded-2xl border border-slate-200 border-l-4 ${n.color} shadow-sm p-5 hover:shadow-md transition">
+<div class="flex items-start justify-between gap-2"><div class="flex items-center gap-2.5"><div class="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center text-slate-700"><i class="fa-solid ${n.icon}"></i></div><div><h3 class="font-bold text-slate-900 text-sm leading-tight">${n.title}</h3><p class="text-[11px] text-slate-500">${n.date} • To: ${n.audience}</p></div></div><span class="text-[10px] font-bold px-2 py-0.5 rounded ${n.badge} whitespace-nowrap">${n.priority}</span></div>
+<p class="text-xs text-slate-600 mt-3 leading-relaxed">${n.body}</p>
+<div class="mt-4 pt-3 border-t flex gap-2"><button onclick="showToast('SMS re-broadcast queued to ${n.audience}','info')" class="flex-1 py-2 text-xs font-bold bg-slate-900 text-white rounded-lg"><i class="fa-solid fa-rotate-right mr-1"></i> Re-send SMS</button><button onclick="showToast('Notice pinned to parent portal','success')" class="flex-1 py-2 text-xs font-bold bg-slate-100 rounded-lg">Pin to Portal</button></div></div>`).join('')}
+function renderExams(){document.getElementById('exams-table-body').innerHTML=examRows.map(r=>{const avg=(r.scores.reduce((a,b)=>a+b,0)/r.scores.length).toFixed(1);return `<tr class="hover:bg-slate-50 transition"><td class="px-5 py-3.5 font-bold text-slate-900 whitespace-nowrap">${r.name}</td>${r.scores.map(s=>`<td class="px-4 py-3.5 text-center font-semibold">${s}</td>`).join('')}<td class="px-4 py-3.5 text-center font-black text-[#E65100]">${avg}%</td><td class="px-4 py-3.5"><span class="px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap ${r.rc}">${r.remark}</span></td><td class="px-4 py-3.5 text-right"><button onclick="previewReportCard('${r.id}')" class="p-1.5 text-[#E65100] hover:bg-orange-50 rounded"><i class="fa-solid fa-file-pdf text-base"></i></button></td></tr>`}).join('')}
+function previewReportCard(id){const s=students.find(x=>x.id===id)||students[0];const row=examRows.find(x=>x.id===id)||examRows[0];const avg=(row.scores.reduce((a,b)=>a+b,0)/row.scores.length).toFixed(1);const subs=['English Language','Mathematics','Integrated Science','Twi (Asante)','Computing'];document.getElementById('report-card-content').innerHTML=`
+<div class="text-center border-b-2 border-[#E65100] pb-4 mb-4"><div class="flex items-center justify-center gap-2"><div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#E65100] to-amber-500 flex items-center justify-center text-white"><i class="fa-solid fa-sun"></i></div><div class="text-left"><h2 class="font-black text-slate-900 leading-none">MORNING DEW MONTESSORI SCHOOL</h2><p class="text-[11px] text-slate-500">Effiduasi, Sekyere East • Ashanti Region • GES/ASH/SE/PR/2016/044</p></div></div><p class="mt-2 inline-block text-[11px] font-black bg-slate-900 text-white px-3 py-1 rounded-full">TERMINAL REPORT CARD • TERM 2, 2024/2025</p></div>
+<div class="grid grid-cols-2 gap-2 text-xs mb-4"><div class="p-2 bg-slate-50 rounded border"><span class="text-slate-500">Name:</span> <strong>${s.name}</strong></div><div class="p-2 bg-slate-50 rounded border"><span class="text-slate-500">Class:</span> <strong>${s.cls} A</strong></div><div class="p-2 bg-slate-50 rounded border"><span class="text-slate-500">Student ID:</span> <strong class="font-mono">${s.id}</strong></div><div class="p-2 bg-slate-50 rounded border"><span class="text-slate-500">Attendance:</span> <strong>58 / 62 days</strong></div></div>
+<table class="w-full text-xs border rounded-xl overflow-hidden"><thead class="bg-slate-900 text-white"><tr><th class="px-3 py-2 text-left">Subject</th><th class="px-3 py-2 text-center">SBA 50%</th><th class="px-3 py-2 text-center">Exam 50%</th><th class="px-3 py-2 text-center">Total</th><th class="px-3 py-2 text-center">Grade</th></tr></thead><tbody class="divide-y">${subs.map((sub,i)=>{const sc=row.scores[i];const g=sc>=80?'A':sc>=70?'B':sc>=60?'C':sc>=50?'D':'F';return `<tr><td class="px-3 py-2 font-semibold">${sub}</td><td class="px-3 py-2 text-center">${Math.round(sc*0.5)}</td><td class="px-3 py-2 text-center">${Math.round(sc*0.5)}</td><td class="px-3 py-2 text-center font-black">${sc}</td><td class="px-3 py-2 text-center font-black text-[#E65100]">${g}</td></tr>`}).join('')}</tbody></table>
+<div class="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-xl text-xs"><p><strong>Average:</strong> ${avg}% &nbsp;•&nbsp; <strong>Position:</strong> 1st of 34 &nbsp;•&nbsp; <strong>Conduct:</strong> Excellent</p><p class="mt-1"><strong>Class Teacher's Remark:</strong> ${row.remark}. Keep it up!</p><p><strong>Head's Remark:</strong> Promoted on trial. Excellent Montessori practical skills.</p></div>
+<div class="mt-4 flex items-center justify-between text-xs"><div><p class="font-bold">___________________</p><p class="text-slate-500">Class Teacher</p></div><div class="text-right"><p class="font-bold">___________________</p><p class="text-slate-500">Headmaster • Nana Y. Boateng</p></div></div>`;openModal('modal-report-card')}
+function handleGlobalSearch(v){const box=document.getElementById('global-search-results');if(!v||v.length<2){box.classList.add('hidden');return}const q=v.toLowerCase();const stu=students.filter(s=>s.name.toLowerCase().includes(q)||s.id.toLowerCase().includes(q)).slice(0,3);const rec=feeTransactions.filter(t=>t.receipt.toLowerCase().includes(q)||t.student.toLowerCase().includes(q)).slice(0,2);if(!stu.length&&!rec.length){box.innerHTML='<div class="p-3 text-xs text-slate-500">No matches found.</div>'}else{box.innerHTML='<div class="p-2 text-xs">'+stu.map(s=>`<div onclick="switchView('students');document.getElementById('student-search-input').value='${s.name}';filterStudents();document.getElementById('global-search-results').classList.add('hidden')" class="p-2 hover:bg-slate-50 rounded-lg cursor-pointer flex items-center gap-2"><i class="fa-solid fa-user-graduate text-[#E65100]"></i><div><p class="font-bold text-slate-900">${s.name}</p><p class="text-[10px] text-slate-500 font-mono">${s.id} • ${s.cls}</p></div></div>`).join('')+rec.map(t=>`<div onclick="switchView('fees');document.getElementById('global-search-results').classList.add('hidden')" class="p-2 hover:bg-slate-50 rounded-lg cursor-pointer flex items-center gap-2"><i class="fa-solid fa-receipt text-emerald-600"></i><div><p class="font-bold text-slate-900">${t.receipt} • GH₵ ${t.amount}</p><p class="text-[10px] text-slate-500">${t.student}</p></div></div>`).join('')+'</div>'}box.classList.remove('hidden')}
+function handleSaveStudent(e){e.preventDefault();const fn=document.getElementById('new-stu-firstname').value.trim(),ln=document.getElementById('new-stu-lastname').value.trim();const cls=document.getElementById('new-stu-class').value;const g=document.getElementById('new-stu-gender').value;const guard=document.getElementById('new-stu-guardian').value;const phone=document.getElementById('new-stu-phone').value;const dob=document.getElementById('new-stu-dob').value;const gh=document.getElementById('new-stu-ghcard').value||'Pending';const res=document.getElementById('new-stu-residence').value||'Effiduasi, Ashanti';const id='MDM-2026-'+String(Math.floor(100+Math.random()*900));students.unshift({id,name:fn+' '+ln,cls,gender:g,age:dob?new Date().getFullYear()-new Date(dob).getFullYear():8,guardian:guard,phone,fee:'Owes',balance:850,dob,gh,residence:res});closeModal('modal-add-student');e.target.reset();filterStudents();document.getElementById('kpi-students').textContent=428+1;showToast(`Admission complete: ${fn} ${ln} (${id}). SMS sent to guardian.`,'success');switchView('students')}
+function handleSavePayment(e){e.preventDefault();const stu=document.getElementById('pay-student-select').value;const amt=parseInt(document.getElementById('pay-amount').value);const ch=document.getElementById('pay-channel').value;const cat=document.getElementById('pay-category').value;const receipt='#MDM-'+(receiptCounter++);feeTransactions.unshift({date:'Today, Just now',receipt,student:stu,cls:'—',channel:ch,category:cat,amount:amt});closeModal('modal-record-fee');renderFees();showToast(`GH₵ ${amt.toLocaleString()} received from ${stu}. Receipt ${receipt} + SMS sent.`,'success')}
+function handleSaveExpense(e){e.preventDefault();const cat=document.getElementById('exp-category').value;const amt=parseInt(document.getElementById('exp-amount').value);const desc=document.getElementById('exp-desc').value;expenseRecords.unshift({date:'Today',voucher:'VCH-0'+(voucherCounter++),category:cat,desc,by:'N. Y. Boateng',amount:amt});closeModal('modal-add-expense');e.target.reset();renderExpenses();showToast(`Expense voucher saved: GH₵ ${amt.toLocaleString()} – ${cat}`,'success')}
+function handleSaveStaff(e){e.preventDefault();const name=document.getElementById('staff-name').value;const role=document.getElementById('staff-role').value;const dept=document.getElementById('staff-dept').value||'General';const phone=document.getElementById('staff-phone').value||'0240 000 000';const qual=document.getElementById('staff-qual').value||'B.Ed';staffMembers.unshift({name,role,dept,phone,qual,initials:initials(name),color:'bg-slate-700',status:'Present'});closeModal('modal-add-staff');e.target.reset();renderStaff();showToast(`Staff profile created: ${name} (${role})`,'success')}
+function handleSaveNotice(e){e.preventDefault();const t=document.getElementById('notice-title').value;const a=document.getElementById('notice-audience').value;const p=document.getElementById('notice-priority').value;const b=document.getElementById('notice-body').value;const map={'Urgent':['border-l-rose-500','bg-rose-100 text-rose-700','fa-triangle-exclamation'],'Fee Reminder':['border-l-amber-500','bg-amber-100 text-amber-700','fa-money-bill-wave'],'Event':['border-l-blue-500','bg-blue-100 text-blue-700','fa-calendar'],'General':['border-l-emerald-500','bg-emerald-100 text-emerald-700','fa-bullhorn']};const[color,badge,icon]=map[p]||map.General;noticePosts.unshift({title:t,audience:a,priority:p,date:'Just now',body:b,color,badge,icon});closeModal('modal-broadcast-notice');e.target.reset();document.getElementById('sms-count').textContent='0';renderNotices();showToast(`Broadcast sent to ${a} via Arkesel SMS`,'success')}
+function testSupabaseConnection(){const log=document.getElementById('supabase-log');log.classList.remove('hidden');log.innerHTML='> ping supabase.co ... <br>> authenticating service_role ...';showToast('Pinging Supabase cluster...','info');setTimeout(()=>{log.innerHTML+='<br>> RLS policies: <span class="text-white">OK (14 active)</span><br>> realtime replication: <span class="text-white">CONNECTED (42ms)</span><br>> parent portal auth: <span class="text-white">394 sessions</span><br><span class="text-emerald-400 font-bold">✓ All systems operational — Vercel edge synced.</span>';showToast('Supabase connection verified (42ms)','success')},1200)}
+document.getElementById('notice-body')?.addEventListener('input',function(){document.getElementById('sms-count').textContent=this.value.length});
+function initChart(){const ctx=document.getElementById('overviewChart');if(!ctx||typeof Chart==='undefined')return;new Chart(ctx,{data:{labels:['Jan','Feb','Mar','Apr','May','Jun'],datasets:[{type:'bar',label:'Revenue (000)',data:[28,34,31,42,38,46],backgroundColor:'#E65100',borderRadius:8,barThickness:22},{type:'line',label:'Attendance %',data:[92,94,93,96,95,96],borderColor:'#0F172A',backgroundColor:'rgba(15,23,42,.08)',fill:true,tension:.4,pointBackgroundColor:'#0F172A',yAxisID:'y1'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f1f5f9'}},y1:{position:'right',min:80,max:100,grid:{display:false}}}}})}
+window.addEventListener('DOMContentLoaded',()=>{document.getElementById('attendance-date').valueAsDate=new Date();filterStudents();renderStaff();renderClasses();loadClassAttendance();renderFees();renderExpenses();renderNotices();renderExams();initChart()});
+</script>
+</body>
+</html>
